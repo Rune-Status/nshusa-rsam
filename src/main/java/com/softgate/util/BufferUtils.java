@@ -19,5 +19,9 @@ public final class BufferUtils {
 	public static int getUShort(ByteBuffer buffer) {
 		return buffer.getShort() & 0xffff;
 	}
+	
+	public static int getTriByte(ByteBuffer buffer) {
+		return ((buffer.get() & 0xff) << 16) | ((buffer.get() & 0xff) << 8) | (buffer.get() & 0xff);
+	}
 
 }

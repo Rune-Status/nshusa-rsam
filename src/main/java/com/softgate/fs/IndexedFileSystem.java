@@ -10,14 +10,18 @@ public final class IndexedFileSystem implements Closeable {
 	
 	private final Path root;
 	
-	private final Store[] stores = new Store[255];
+	private final FileStore[] fileStores = new FileStore[255];
+	
+	private boolean loaded;
 	
 	private IndexedFileSystem(Path root) {
 		this.root = root;
 	}
 	
-	public static IndexedFileSystem init(Path root) throws IOException {
+	public static IndexedFileSystem init(Path root) {
 		IndexedFileSystem indexedFileSystem = new IndexedFileSystem(root);
+		
+		try {
 		
 		Path dataPath = root.resolve("main_file_cache.dat");
 		
@@ -30,18 +34,25 @@ public final class IndexedFileSystem implements Closeable {
 		for (int i = 0; i < 255; i++) {			
 			Path indexPath = root.resolve("main_file_cache.idx" + i);			
 			if (Files.exists(indexPath)) {				
-				indexedFileSystem.stores[i] = new Store(i + 1, dataRaf, new RandomAccessFile(indexPath.toFile(), "rw"));
+				indexedFileSystem.fileStores[i] = new FileStore(i + 1, dataRaf, new RandomAccessFile(indexPath.toFile(), "rw"));
 			}			
 		}
+		
+		indexedFileSystem.loaded = true;
+		
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		
 		return indexedFileSystem;
 	}
 	
 	public void createStore(int storeId) throws IOException {		
-		if (storeId < 0 || storeId >= stores.length) {
+		if (storeId < 0 || storeId >= fileStores.length) {
 			return;
 		}
 		
-		if (stores[storeId] != null) {
+		if (fileStores[storeId] != null) {
 			return;
 		}
 		
@@ -59,15 +70,15 @@ public final class IndexedFileSystem implements Closeable {
 		
 		RandomAccessFile dataRaf = new RandomAccessFile(dataPath.toFile(), "rw");
 		
-		stores[storeId] = new Store(storeId + 1, dataRaf, new RandomAccessFile(path.toFile(), "rw"));		
+		fileStores[storeId] = new FileStore(storeId + 1, dataRaf, new RandomAccessFile(path.toFile(), "rw"));		
 	}
 	
-	public Store getStore(int storeId) {
-		if (storeId < 0 || storeId >= stores.length) {
+	public FileStore getStore(int storeId) {
+		if (storeId < 0 || storeId >= fileStores.length) {
 			throw new IllegalArgumentException(String.format("storeId=%d out of range=[0, 254]", storeId));
 		}
 		
-		return stores[storeId];
+		return fileStores[storeId];
 	}
 
 	public Path getRoot() {
@@ -84,18 +95,22 @@ public final class IndexedFileSystem implements Closeable {
 		}
 		
 		return count;
+	}	
+
+	public boolean isLoaded() {
+		return loaded;
 	}
 
 	@Override
 	public void close() throws IOException {
-		for (Store store : stores) {
-			if (store == null) {
+		for (FileStore fileStore : fileStores) {
+			if (fileStore == null) {
 				continue;
 			}
 			
-			synchronized(store) {
-				store.getDataRaf().close();
-				store.getIndexRaf().close();
+			synchronized(fileStore) {
+				fileStore.getDataRaf().close();
+				fileStore.getIndexRaf().close();
 			}
 			
 		}

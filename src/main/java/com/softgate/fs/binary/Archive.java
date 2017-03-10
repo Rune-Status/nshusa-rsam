@@ -1,4 +1,4 @@
-package com.softgate.fs;
+package com.softgate.fs.binary;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -10,6 +10,38 @@ import com.softgate.util.CompressionUtil;
 import com.softgate.util.HashUtils;
 
 public final class Archive {
+	
+	public static final class ArchiveEntry {
+		
+		private final int hash;
+		private final int uncompressedSize;			
+		private final int compressedSize;		
+		private final byte[] bzipped;		
+		
+		public ArchiveEntry(int hash, int uncompressedSize, int compressedSize, byte[] bzipped) {
+			this.hash = hash;
+			this.uncompressedSize = uncompressedSize;
+			this.compressedSize = compressedSize;
+			this.bzipped = bzipped;
+		}
+		
+		public int getHash() {
+			return hash;
+		}
+
+		public int getUncompressedSize() {
+			return uncompressedSize;
+		}
+
+		public int getCompresseedSize() {			
+			return compressedSize;
+		}
+
+		public byte[] getData() {
+			return bzipped;
+		}
+		
+	}
 
 	private boolean extracted;	
 	
@@ -28,44 +60,74 @@ public final class Archive {
 	public static Archive decode(byte[] data) throws IOException {
 		Archive archive = new Archive();
 		
-		ByteBuffer archiveBuf = ByteBuffer.wrap(data);		
-		
-		int uncompressedSize = BufferUtils.getUMedium(archiveBuf);			
-		int compressedSize = BufferUtils.getUMedium(archiveBuf);		
-		
-		if (uncompressedSize != compressedSize) {
-			byte[] tmp = new byte[uncompressedSize];
-			CompressionUtil.debzip2(data, tmp);
-			data = tmp;
-			archiveBuf = ByteBuffer.wrap(data);
-			archive.extracted = true;
+		ByteBuffer buffer = ByteBuffer.wrap(data);
+
+		final int extractedSize = BufferUtils.getTriByte(buffer);
+		final int size = BufferUtils.getTriByte(buffer);
+
+		boolean extracted = false;
+
+		if (extractedSize != size) {
+
+			final byte[] compressed = new byte[size];
+			final byte[] decompressed = new byte[extractedSize];
+
+			buffer.get(compressed);
+
+			CompressionUtil.debzip2(compressed, decompressed);
+
+			buffer = ByteBuffer.wrap(decompressed);
+
+			extracted = true;
 		} else {
-			archive.extracted = false;
+			extracted = false;
 		}
+
+		final int entryCount = buffer.getShort() & 0xffff;
 		
-		int entries = BufferUtils.getUShort(archiveBuf);
+		int[] hashes = new int[entryCount];
+		int[] uncompressedSizes = new int[entryCount];
+		int[] compressedSizes = new int[entryCount];		
+		int[] offsets = new int[entryCount];
 		
-		ByteBuffer entryBuf = ByteBuffer.wrap(data);
-		
-		entryBuf.position(archiveBuf.position() + entries * 10);
-		
-		int[] hashes = new int[entries];
-		int[] decompressedSizes = new int[entries];
-		int[] compressedSizes = new int[entries];
-		
-		for (int i = 0; i < entries; i++) {		
+		int offset = buffer.position() + entryCount * 10;
+
+		for (int file = 0; file < entryCount; file++) {
+
+			hashes[file] = buffer.getInt();
+			uncompressedSizes[file] = BufferUtils.getTriByte(buffer);
+			compressedSizes[file] = BufferUtils.getTriByte(buffer);			
+			offsets[file] = offset;
 			
-			hashes[i] = archiveBuf.getInt();
-			decompressedSizes[i] = BufferUtils.getUMedium(archiveBuf);			
-			compressedSizes[i] = BufferUtils.getUMedium(archiveBuf);
+			offset += compressedSizes[file];
+		}
+
+		for (int entry = 0; entry < entryCount; entry++) {
+
+			ByteBuffer entryBuf;
+
+			if (!extracted) {
+				byte[] compressed = new byte[compressedSizes[entry]];
+
+				byte[] decompressed = new byte[uncompressedSizes[entry]];
+
+				buffer.get(compressed);
+
+				CompressionUtil.debzip2(compressed, decompressed);
+
+				entryBuf = ByteBuffer.wrap(decompressed);
+
+			} else {
+				byte[] buf = new byte[uncompressedSizes[entry]];
+
+				buffer.get(buf);
+
+				entryBuf = ByteBuffer.wrap(buf);
+			}		
 			
-			byte[] compressed = new byte[compressedSizes[i]];
-			
-			ArchiveEntry entry = new ArchiveEntry(hashes[i], decompressedSizes[i], compressedSizes[i], compressed);			
-			
-			entryBuf.get(compressed, 0, entry.getCompresseedSize());
-			
-			archive.entries.add(entry);
+			archive.getEntries().add(new ArchiveEntry(hashes[entry], uncompressedSizes[entry], compressedSizes[entry],
+					entryBuf.array()));			
+
 		}
 		
 		return archive;
