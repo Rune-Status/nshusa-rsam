@@ -6,18 +6,18 @@ import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public final class Cache implements Closeable {
+public final class IndexedFileSystem implements Closeable {
 	
 	private final Path root;
 	
 	private final Store[] stores = new Store[255];
 	
-	private Cache(Path root) {
+	private IndexedFileSystem(Path root) {
 		this.root = root;
 	}
 	
-	public static Cache init(Path root) throws IOException {
-		Cache cache = new Cache(root);
+	public static IndexedFileSystem init(Path root) throws IOException {
+		IndexedFileSystem indexedFileSystem = new IndexedFileSystem(root);
 		
 		Path dataPath = root.resolve("main_file_cache.dat");
 		
@@ -30,10 +30,10 @@ public final class Cache implements Closeable {
 		for (int i = 0; i < 255; i++) {			
 			Path indexPath = root.resolve("main_file_cache.idx" + i);			
 			if (Files.exists(indexPath)) {				
-				cache.stores[i] = new Store(i + 1, dataRaf, new RandomAccessFile(indexPath.toFile(), "rw"));
+				indexedFileSystem.stores[i] = new Store(i + 1, dataRaf, new RandomAccessFile(indexPath.toFile(), "rw"));
 			}			
 		}
-		return cache;
+		return indexedFileSystem;
 	}
 	
 	public void createStore(int storeId) throws IOException {		
