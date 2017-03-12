@@ -16,7 +16,7 @@ public final class Archive {
 		private final int hash;
 		private final int uncompressedSize;			
 		private final int compressedSize;		
-		private final byte[] bzipped;		
+		private final byte[] bzipped;	
 		
 		public ArchiveEntry(int hash, int uncompressedSize, int compressedSize, byte[] bzipped) {
 			this.hash = hash;
@@ -65,16 +65,11 @@ public final class Archive {
 		int uncompressedSize = BufferUtils.getTriByte(archiveBuf);		
 		int compressedSize = BufferUtils.getTriByte(archiveBuf);
 		
-		boolean extracted = false;
-		
 		if (uncompressedSize != compressedSize) {
 			byte[] decompressed = new byte[uncompressedSize];			
 			CompressionUtil.debzip2(data, decompressed);
 			data = decompressed;
-			archiveBuf = ByteBuffer.wrap(data);
-			extracted = true;
-		} else {
-			extracted = false;
+			archiveBuf = ByteBuffer.wrap(decompressed);
 		}
 		
 		int entries = archiveBuf.getShort() & 0xffff;
@@ -99,12 +94,15 @@ public final class Archive {
 			archive.getEntries().add(new ArchiveEntry(hashes[i], uncompressedSizes[i], compressedSizes[i], entryData));
 		}
 		
-		archive.extracted = extracted;		
+		archive.extracted = uncompressedSize != compressedSize;		
 		return archive;
 	}
 	
 	public synchronized byte[] encode() throws IOException {		
 		
+		// 2 bytes for bzip2 signature
+		// amount of entries
+		// entry size is 10
 		int size = 2 + entries.size() * 10;
 		
 		for (ArchiveEntry file : entries) {			
@@ -128,8 +126,8 @@ public final class Archive {
 			BufferUtils.putMedium(buf, entry.getCompresseedSize());
 		}
 		
-		for (ArchiveEntry file : entries) {
-			buf.put(file.getData());
+		for (ArchiveEntry file : entries) {			
+			buf.put(file.getData());			
 		}
 		
 		byte[] data;
@@ -152,14 +150,22 @@ public final class Archive {
 		
 	}
 	
-	public byte[] readFile(String name) {
+	public byte[] readFile(String name) throws IOException {
 		return readFile(HashUtils.nameToHash(name));
 	}
 	
-	public byte[] readFile(int hash) {
+	public byte[] readFile(int hash) throws IOException {
 		for (ArchiveEntry entry : entries) {
 			if (entry.getHash() == hash) {
-				return entry.getData();
+				
+				byte[] decompressed = new byte[entry.getUncompressedSize()];
+				
+				if (extracted) {
+					System.arraycopy(entry.getData(), 0, decompressed, 0, decompressed.length);
+				} else {					
+					CompressionUtil.debzip2(entry.getData(), decompressed);
+				}
+				return decompressed;
 			}
 		}
 		
