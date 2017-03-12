@@ -1,12 +1,9 @@
 package com.softgate;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
 import java.util.List;
-
-import javax.imageio.ImageIO;
 
 import com.softgate.fs.FileStore;
 import com.softgate.fs.IndexedFileSystem;
@@ -31,13 +28,13 @@ public class ImageArchiveTest {
 			ArchiveEntry entry = archive.getEntries().get(file);
 			
 			List<Sprite> sprites = ImageArchive.decode(ByteBuffer.wrap(archive.readFile(entry.getHash())), ByteBuffer.wrap(archive.readFile("index.dat")), true);
-
-			System.out.println(sprites.size());
 			
 			for (int spriteId = 0; spriteId < sprites.size(); spriteId++) {			
 				Sprite sprite = sprites.get(spriteId);
 				
-				ImageIO.write(sprite.toBufferedImage(), "png", new File("./dump/" + file + "_" + spriteId + ".png"));
+				//ImageIO.write(sprite.toBufferedImage(), "png", new File("./dump/" + file + "_" + spriteId + ".png"));
+				
+				System.out.println("file= " + file + " sprite= " + spriteId);
 			}
 		}
 		

@@ -15,8 +15,10 @@ public final class ImageArchive {
 	public static List<Sprite> decode(ByteBuffer dataBuf, ByteBuffer indexBuf, boolean unpack) {
 		
 		List<Sprite> sprites = new ArrayList<>();
+		
+		int dataPos = dataBuf.getShort() & 0xffff;
 				
-		indexBuf.position(dataBuf.getShort() & 0xffff);
+		indexBuf.position(dataPos);
 		
 		int resizeWidth = indexBuf.getShort() & 0xffff;
 		int resizeHeight = indexBuf.getShort() & 0xffff;
