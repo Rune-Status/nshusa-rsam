@@ -1,4 +1,4 @@
-package com.softgate.util;
+package io.battlerune.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

@@ -1,4 +1,4 @@
-package com.softgate;
+package io.battlerune.fs.binary;
 
 import java.io.IOException;
 

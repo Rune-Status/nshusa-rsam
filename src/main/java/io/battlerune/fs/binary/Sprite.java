@@ -1,4 +1,4 @@
-package com.softgate.fs.binary;
+package io.battlerune.fs.binary;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;

@@ -1,14 +1,14 @@
-package com.softgate;
+package io.battlerune.fs.binary;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
-import com.softgate.fs.FileStore;
-import com.softgate.fs.IndexedFileSystem;
-import com.softgate.fs.binary.Model;
-import com.softgate.util.CompressionUtil;
+import io.battlerune.fs.FileStore;
+import io.battlerune.fs.IndexedFileSystem;
+import io.battlerune.fs.binary.Model;
+import io.battlerune.util.CompressionUtil;
 
 public class ModelTest {
 

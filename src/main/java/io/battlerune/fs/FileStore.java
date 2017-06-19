@@ -1,4 +1,4 @@
-package com.softgate.fs;
+package io.battlerune.fs;
 
 import java.io.*;
 

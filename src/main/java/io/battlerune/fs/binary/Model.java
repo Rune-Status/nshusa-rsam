@@ -1,11 +1,11 @@
-package com.softgate.fs.binary;
+package io.battlerune.fs.binary;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 
-import com.softgate.util.BufferUtils;
+import io.battlerune.util.BufferUtils;
 
 /**
  * @author Tom, modified by Freyr

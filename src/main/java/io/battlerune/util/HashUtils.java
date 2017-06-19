@@ -1,4 +1,4 @@
-package com.softgate.util;
+package io.battlerune.util;
 
 public final class HashUtils {
 	

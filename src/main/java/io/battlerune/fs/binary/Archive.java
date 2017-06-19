@@ -1,13 +1,13 @@
-package com.softgate.fs.binary;
+package io.battlerune.fs.binary;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.softgate.util.BufferUtils;
-import com.softgate.util.CompressionUtil;
-import com.softgate.util.HashUtils;
+import io.battlerune.util.BufferUtils;
+import io.battlerune.util.CompressionUtil;
+import io.battlerune.util.HashUtils;
 
 public final class Archive {
 	

@@ -1,4 +1,4 @@
-package com.softgate;
+package io.battlerune.fs.binary;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,13 +8,13 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
-import com.softgate.fs.FileStore;
-import com.softgate.fs.IndexedFileSystem;
-import com.softgate.fs.binary.Archive;
-import com.softgate.fs.binary.Archive.ArchiveEntry;
-import com.softgate.fs.binary.ImageArchive;
-import com.softgate.fs.binary.Sprite;
-import com.softgate.util.HashUtils;
+import io.battlerune.fs.FileStore;
+import io.battlerune.fs.IndexedFileSystem;
+import io.battlerune.fs.binary.Archive;
+import io.battlerune.fs.binary.ImageArchive;
+import io.battlerune.fs.binary.Sprite;
+import io.battlerune.fs.binary.Archive.ArchiveEntry;
+import io.battlerune.util.HashUtils;
 
 public class ImageArchiveTest {
 

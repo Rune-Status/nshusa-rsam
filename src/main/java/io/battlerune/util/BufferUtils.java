@@ -1,4 +1,4 @@
-package com.softgate.util;
+package io.battlerune.util;
 
 import java.nio.ByteBuffer;
 

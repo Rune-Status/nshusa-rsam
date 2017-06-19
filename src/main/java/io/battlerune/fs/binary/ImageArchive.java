@@ -1,10 +1,10 @@
-package com.softgate.fs.binary;
+package io.battlerune.fs.binary;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.softgate.util.BufferUtils;
+import io.battlerune.util.BufferUtils;
 
 public final class ImageArchive {	
 	
