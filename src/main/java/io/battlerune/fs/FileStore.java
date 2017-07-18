@@ -4,12 +4,18 @@ import java.io.*;
 
 public final class FileStore {
 	
+	public static final int ARCHIVE_FILE_STORE = 0;
+	public static final int MODEL_FILE_STORE = 1;
+	public static final int ANIMATION_FILE_STORE = 2;
+	public static final int MIDI_FILE_STORE = 3;
+	public static final int MAP_FILE_STORE = 4;
+	
 	private static final byte[] buffer = new byte[520];
 	
 	private final int storeId;	
 	
-	private final RandomAccessFile dataRaf;	
-	private final RandomAccessFile indexRaf;
+	protected final RandomAccessFile dataRaf;	
+	protected final RandomAccessFile indexRaf;
 
 	public FileStore(int storeId, RandomAccessFile data, RandomAccessFile index) {		
 		this.storeId = storeId;
@@ -226,14 +232,6 @@ public final class FileStore {
 
 	public int getStoreId() {
 		return storeId;
-	}
-
-	public RandomAccessFile getDataRaf() {
-		return dataRaf;
-	}
-
-	public RandomAccessFile getIndexRaf() {
-		return indexRaf;
 	}
 
 }

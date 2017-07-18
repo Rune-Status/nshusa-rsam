@@ -109,8 +109,8 @@ public final class IndexedFileSystem implements Closeable {
 			}
 			
 			synchronized(fileStore) {
-				fileStore.getDataRaf().close();
-				fileStore.getIndexRaf().close();
+				fileStore.dataRaf.close();
+				fileStore.indexRaf.close();
 			}
 			
 		}

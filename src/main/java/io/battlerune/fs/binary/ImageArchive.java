@@ -24,7 +24,7 @@ public final class ImageArchive {
 		int resizeHeight = indexBuf.getShort() & 0xffff;
 		
 		int colors = indexBuf.get() & 0xff;
-		
+
 		int[] raster = new int[colors];
 		
 		for (int index = 0; index < colors - 1; index++) {
