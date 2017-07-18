@@ -1,8 +1,9 @@
-package io.battlerune.fs.binary;
+package io.battlerune.fs.binary.sprite;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import io.battlerune.fs.binary.Archive;
 import io.battlerune.graphics.render.Rasterizer2D;
 import io.battlerune.util.BufferUtils;
 

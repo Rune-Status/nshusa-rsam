@@ -1,4 +1,4 @@
-package io.battlerune.fs.binary;
+package io.battlerune.fs.binary.sprite;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;

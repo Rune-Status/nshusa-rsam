@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 
 import io.battlerune.fs.FileStore;
 import io.battlerune.fs.IndexedFileSystem;
+import io.battlerune.fs.binary.sprite.IndexedImage;
 
 public class IndexedImageTest {
 

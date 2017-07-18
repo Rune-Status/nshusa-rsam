@@ -1,7 +1,7 @@
 package io.battlerune.graphics.render;
 
 import io.battlerune.fs.binary.Archive;
-import io.battlerune.fs.binary.IndexedImage;
+import io.battlerune.fs.binary.sprite.IndexedImage;
 
 public final class Rasterizer3D extends Rasterizer2D {
 	

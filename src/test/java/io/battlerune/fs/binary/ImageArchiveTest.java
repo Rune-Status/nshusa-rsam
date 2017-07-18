@@ -11,9 +11,9 @@ import javax.imageio.ImageIO;
 import io.battlerune.fs.FileStore;
 import io.battlerune.fs.IndexedFileSystem;
 import io.battlerune.fs.binary.Archive;
-import io.battlerune.fs.binary.ImageArchive;
-import io.battlerune.fs.binary.Sprite;
 import io.battlerune.fs.binary.Archive.ArchiveEntry;
+import io.battlerune.fs.binary.sprite.ImageArchive;
+import io.battlerune.fs.binary.sprite.Sprite;
 import io.battlerune.util.HashUtils;
 
 public class ImageArchiveTest {
