@@ -1,4 +1,4 @@
-package io.battlerune.fs;
+package com.nshusa.rsam;
 
 import java.io.*;
 

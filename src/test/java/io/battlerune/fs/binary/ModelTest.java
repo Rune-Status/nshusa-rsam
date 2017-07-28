@@ -5,10 +5,10 @@ import java.nio.ByteBuffer;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
-import io.battlerune.fs.FileStore;
-import io.battlerune.fs.IndexedFileSystem;
-import io.battlerune.fs.binary.Model;
-import io.battlerune.util.CompressionUtil;
+import com.nshusa.rsam.FileStore;
+import com.nshusa.rsam.IndexedFileSystem;
+import com.nshusa.rsam.binary.Model;
+import com.nshusa.rsam.util.CompressionUtil;
 
 public class ModelTest {
 

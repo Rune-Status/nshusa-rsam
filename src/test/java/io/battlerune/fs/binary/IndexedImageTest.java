@@ -3,9 +3,10 @@ package io.battlerune.fs.binary;
 import java.io.IOException;
 import java.nio.file.Paths;
 
-import io.battlerune.fs.FileStore;
-import io.battlerune.fs.IndexedFileSystem;
-import io.battlerune.fs.binary.sprite.IndexedImage;
+import com.nshusa.rsam.FileStore;
+import com.nshusa.rsam.IndexedFileSystem;
+import com.nshusa.rsam.binary.Archive;
+import com.nshusa.rsam.binary.sprite.IndexedImage;
 
 public class IndexedImageTest {
 

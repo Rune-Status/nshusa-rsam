@@ -1,11 +1,11 @@
-package io.battlerune.fs.binary;
+package com.nshusa.rsam.binary;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 
-import io.battlerune.util.BufferUtils;
+import com.nshusa.rsam.util.BufferUtils;
 
 /**
  * @author Tom, modified by Freyr

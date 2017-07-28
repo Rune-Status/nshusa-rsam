@@ -1,4 +1,4 @@
-package io.battlerune.fs.binary.sprite;
+package com.nshusa.rsam.binary.sprite;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;

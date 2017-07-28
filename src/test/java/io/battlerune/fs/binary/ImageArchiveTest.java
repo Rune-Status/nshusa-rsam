@@ -8,13 +8,13 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
-import io.battlerune.fs.FileStore;
-import io.battlerune.fs.IndexedFileSystem;
-import io.battlerune.fs.binary.Archive;
-import io.battlerune.fs.binary.Archive.ArchiveEntry;
-import io.battlerune.fs.binary.sprite.ImageArchive;
-import io.battlerune.fs.binary.sprite.Sprite;
-import io.battlerune.util.HashUtils;
+import com.nshusa.rsam.FileStore;
+import com.nshusa.rsam.IndexedFileSystem;
+import com.nshusa.rsam.binary.Archive;
+import com.nshusa.rsam.binary.Archive.ArchiveEntry;
+import com.nshusa.rsam.binary.sprite.ImageArchive;
+import com.nshusa.rsam.binary.sprite.Sprite;
+import com.nshusa.rsam.util.HashUtils;
 
 public class ImageArchiveTest {
 

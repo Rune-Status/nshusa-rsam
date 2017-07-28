@@ -1,7 +1,7 @@
-package io.battlerune.graphics.render;
+package com.nshusa.rsam.graphics.render;
 
-import io.battlerune.fs.binary.Archive;
-import io.battlerune.fs.binary.sprite.IndexedImage;
+import com.nshusa.rsam.binary.Archive;
+import com.nshusa.rsam.binary.sprite.IndexedImage;
 
 public final class Rasterizer3D extends Rasterizer2D {
 	

@@ -1,10 +1,10 @@
-package io.battlerune.fs.binary.sprite;
+package com.nshusa.rsam.binary.sprite;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.battlerune.util.BufferUtils;
+import com.nshusa.rsam.util.BufferUtils;
 
 public final class ImageArchive {	
 	

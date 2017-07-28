@@ -1,13 +1,13 @@
-package io.battlerune.fs.binary;
+package com.nshusa.rsam.binary;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.battlerune.util.BufferUtils;
-import io.battlerune.util.CompressionUtil;
-import io.battlerune.util.HashUtils;
+import com.nshusa.rsam.util.BufferUtils;
+import com.nshusa.rsam.util.CompressionUtil;
+import com.nshusa.rsam.util.HashUtils;
 
 public final class Archive {
 	

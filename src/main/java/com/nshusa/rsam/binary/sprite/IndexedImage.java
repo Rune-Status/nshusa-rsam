@@ -1,11 +1,11 @@
-package io.battlerune.fs.binary.sprite;
+package com.nshusa.rsam.binary.sprite;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import io.battlerune.fs.binary.Archive;
-import io.battlerune.graphics.render.Rasterizer2D;
-import io.battlerune.util.BufferUtils;
+import com.nshusa.rsam.binary.Archive;
+import com.nshusa.rsam.graphics.render.Rasterizer2D;
+import com.nshusa.rsam.util.BufferUtils;
 
 public final class IndexedImage extends Rasterizer2D {
 	

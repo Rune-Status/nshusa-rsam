@@ -1,4 +1,4 @@
-package io.battlerune.util;
+package com.nshusa.rsam.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
