@@ -1,9 +1,15 @@
 package io.nshusa.rsam.codec;
 
+import io.nshusa.rsam.binary.Archive;
 import io.nshusa.rsam.binary.sprite.Sprite;
 import io.nshusa.rsam.util.ByteBufferUtils;
+import io.nshusa.rsam.util.HashUtils;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.util.*;
 
 public final class SpriteDecoder {
 
@@ -11,7 +17,51 @@ public final class SpriteDecoder {
 
     }
 
-    public static Sprite decode(ByteBuffer dataBuf, ByteBuffer indexBuf, int spriteId) {
+    public static Map<Integer, List<Sprite>> decodeAll(Archive archive) {
+
+        Map<Integer, List<Sprite>> map = new LinkedHashMap<>();
+
+        for (int i = 0; i < archive.getEntries().size(); i++) {
+
+            Archive.ArchiveEntry entry = archive.getEntries().get(i);
+
+            if (entry == null) {
+                continue;
+            }
+
+            if (entry.getHash() == HashUtils.nameToHash("index.dat")) {
+                continue;
+            }
+
+            List<Sprite> list = new ArrayList<>();
+
+            int counter = 0;
+
+            for(;;) {
+                try {
+                    Sprite sprite = SpriteDecoder.decode(archive, entry.getHash(), counter);
+
+                    list.add(sprite);
+
+                    counter++;
+                } catch (IOException e) {
+                    break;
+                }
+            }
+
+            map.put(entry.getHash(), list);
+
+        }
+
+        return map;
+    }
+
+    public static Sprite decode(Archive archive, int hash, int spriteId) throws IOException {
+
+        ByteBuffer dataBuf = ByteBuffer.wrap(archive.readFile(hash));
+
+        ByteBuffer indexBuf = ByteBuffer.wrap(archive.readFile("index.dat"));
+
         Sprite sprite = new Sprite();
 
         // position of the current image archive within the archive

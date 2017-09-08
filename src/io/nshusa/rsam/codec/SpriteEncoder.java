@@ -23,12 +23,6 @@ public final class SpriteEncoder {
 
         ByteArrayOutputStream ibos = new ByteArrayOutputStream();
 
-        File outputDir = new File("./output/");
-
-        if (!outputDir.exists()) {
-            outputDir.mkdirs();
-        }
-
         // marks the position of the first sprite within each image archive.
         int idxOffset = 0;
 
@@ -209,7 +203,7 @@ public final class SpriteEncoder {
 
             final byte[] encoded = archive.encode();
 
-            try(FileOutputStream fos = new FileOutputStream(new File(outputDir, "sprites.dat"))) {
+            try(FileOutputStream fos = new FileOutputStream(new File(dir.getParentFile(), "sprites.jag"))) {
                 fos.write(encoded);
             }
 
