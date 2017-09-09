@@ -38,16 +38,16 @@ public final class ImageArchiveDecoder {
 			byte drawOffsetY;
 			int width;
 			int height;
+			int format;
 			int[] pixels;
 			
 			for(dataOffset = dataBuf.position(); dataBuf.position() < dataBuf.array().length; 
-					sprites.add(new Sprite(resizeWidth, resizeHeight, drawOffsetX, drawOffsetY, width, height, pixels))) {
+					sprites.add(new Sprite(resizeWidth, resizeHeight, drawOffsetX, drawOffsetY, width, height, format, pixels))) {
 				drawOffsetX = indexBuf.get();
 				drawOffsetY = indexBuf.get();
 				width = indexBuf.getShort() & 0xffff;
 				height = indexBuf.getShort() & 0xffff;
-				
-				int format = indexBuf.get();
+				format = indexBuf.get();
 				
 				pixels = new int[width * height];
 				

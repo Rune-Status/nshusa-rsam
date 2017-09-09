@@ -11,8 +11,8 @@ public final class Sprite {
 	private int offsetY;
 	private int largestHeight;
 	private int largestWidth;
-
 	private int[] pixels;
+	private int format;
 
 	public Sprite() {
 
@@ -24,7 +24,7 @@ public final class Sprite {
 		this.height = this.largestHeight = height;
 	}
 
-	public Sprite(int resizeWidth, int resizeHeight, int horizontalOffset, int verticalOffset, int width, int height,
+	public Sprite(int resizeWidth, int resizeHeight, int horizontalOffset, int verticalOffset, int width, int height, int format,
 			int[] pixels) {
 		this.largestWidth = resizeWidth;
 		this.largestHeight = resizeHeight;
@@ -32,6 +32,7 @@ public final class Sprite {
 		this.offsetY = verticalOffset;
 		this.width = width;
 		this.height = height;
+		this.format = format;
 		this.pixels = pixels;
 	}
 
@@ -100,6 +101,14 @@ public final class Sprite {
 
 	public void setPixels(int[] pixels) {
 		this.pixels = pixels;
+	}
+
+	public int getFormat() {
+		return format;
+	}
+
+	public void setFormat(int format) {
+		this.format = format;
 	}
 
 }
