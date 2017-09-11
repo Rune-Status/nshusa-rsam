@@ -42,8 +42,8 @@ public final class Sprite {
 		this.pixels = pixels;
 	}
 
-	public static Sprite decode(Archive archive, String name, int id) throws IOException {
-		ByteBuffer dataBuf = ByteBuffer.wrap(archive.readFile(name + ".dat"));
+	public static Sprite decode(Archive archive, int hash, int id) throws IOException {
+		ByteBuffer dataBuf = ByteBuffer.wrap(archive.readFile(hash));
 		ByteBuffer metaBuf = ByteBuffer.wrap(archive.readFile("index.dat"));
 
 		Sprite sprite = new Sprite();
@@ -108,6 +108,9 @@ public final class Sprite {
 		}
 		sprite.setPixels(raster);
 		return sprite;
+	}
+	public static Sprite decode(Archive archive, String name, int id) throws IOException {
+		return decode(archive, HashUtils.nameToHash(name), id);
 	}
 
 	public BufferedImage toBufferedImage() {
