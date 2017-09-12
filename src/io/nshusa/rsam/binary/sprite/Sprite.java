@@ -93,6 +93,18 @@ public final class Sprite {
 		// there are 2 ways the pixels can be written (0 or 1, 0 means the position is read horizontally, 1 means vertically)
 		sprite.setFormat(metaBuf.get() & 0xFF);
 
+		if (sprite.getFormat() != 0 && sprite.getFormat() != 1) {
+			throw new IOException(String.format("Detected end of archive=%d id=%d or wrong format=%d", hash, id, sprite.getFormat()));
+		}
+
+		if (sprite.getWidth() > 765 || sprite.getHeight() > 765 || sprite.getWidth() <= 0 || sprite.getHeight() <= 0) {
+			throw new IOException(String.format("Detected end of archive=%d id=%d", hash, id));
+		}
+
+		if (HashUtils.nameToHash("mapfunction.dat") == hash) {
+			System.out.println(hash + " " + sprite.getFormat());
+		}
+
 		int[] raster = new int[sprite.getWidth() * sprite.getHeight()];
 
 		if (sprite.getFormat() == 0) { // read horizontally
@@ -109,6 +121,7 @@ public final class Sprite {
 		sprite.setPixels(raster);
 		return sprite;
 	}
+
 	public static Sprite decode(Archive archive, String name, int id) throws IOException {
 		return decode(archive, HashUtils.nameToHash(name), id);
 	}
