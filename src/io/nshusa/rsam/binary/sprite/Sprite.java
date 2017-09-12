@@ -101,10 +101,6 @@ public final class Sprite {
 			throw new IOException(String.format("Detected end of archive=%d id=%d", hash, id));
 		}
 
-		if (HashUtils.nameToHash("mapfunction.dat") == hash) {
-			System.out.println(hash + " " + sprite.getFormat());
-		}
-
 		int[] raster = new int[sprite.getWidth() * sprite.getHeight()];
 
 		if (sprite.getFormat() == 0) { // read horizontally
