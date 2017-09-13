@@ -1,5 +1,5 @@
 # RuneScape Asset Manager (RSAM)
-Is a library for reading and manipulating the contents of the 2006 RuneScape file system. It's designed to be lightweight and easy to use.
+A lightweight library for accessing and modifying RuneScape's 2006 file system. It's designed to be lightweight and easy to use.
 
 ### Loading cache
 ```java
