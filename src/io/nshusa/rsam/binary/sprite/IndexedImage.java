@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 
 import io.nshusa.rsam.binary.Archive;
 import io.nshusa.rsam.graphics.render.Rasterizer2D;
-import io.nshusa.rsam.util.BufferUtils;
+import io.nshusa.rsam.util.ByteBufferUtils;
 
 public final class IndexedImage extends Rasterizer2D {
 	
@@ -42,7 +42,7 @@ public final class IndexedImage extends Rasterizer2D {
 		indexedImage.resizeHeight = resizeHeight;
 		
 		for(int index = 0; index < colorLength - 1; index++) {
-			indexedImage.palette[index + 1] = BufferUtils.getTriByte(metaBuffer);
+			indexedImage.palette[index + 1] = ByteBufferUtils.readU24Int(metaBuffer);
 		}
 		
 		for(int l = 0; l < i; l++) {
@@ -256,4 +256,5 @@ public final class IndexedImage extends Rasterizer2D {
 			sourceIndex += sourceStep;			
 		}
 	}
+
 }

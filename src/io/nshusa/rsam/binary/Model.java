@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 
-import io.nshusa.rsam.util.BufferUtils;
+import io.nshusa.rsam.util.ByteBufferUtils;
 
 /**
  * @author Tom, modified by Freyr
@@ -189,9 +189,9 @@ public final class Model {
 		
 		for (int vertex = 0; vertex != vertices; ++vertex) {
 			int vertexFlags = triangleColorBuffer.get() & 0xff;
-			int offsetX = (vertexFlags & 0x1) != 0 ? BufferUtils.getSmart(drawTypeBuffer) : 0;
-			int offsetY = (vertexFlags & 0x2) != 0 ? BufferUtils.getSmart(priorityBuffer) : 0;
-			int offsetZ = (vertexFlags & 0x4) != 0 ? BufferUtils.getSmart(alphaBuffer) : 0;
+			int offsetX = (vertexFlags & 0x1) != 0 ? ByteBufferUtils.getSmart(drawTypeBuffer) : 0;
+			int offsetY = (vertexFlags & 0x2) != 0 ? ByteBufferUtils.getSmart(priorityBuffer) : 0;
+			int offsetZ = (vertexFlags & 0x4) != 0 ? ByteBufferUtils.getSmart(alphaBuffer) : 0;
 			vertexX += offsetX;
 			vertexY += offsetY;
 			vertexZ += offsetZ;
@@ -264,11 +264,11 @@ public final class Model {
 			switch (type) {			
 			
 			case 1:
-				triangleX = (short) (BufferUtils.getSmart(triangleColorBuffer) + previousZView);
+				triangleX = (short) (ByteBufferUtils.getSmart(triangleColorBuffer) + previousZView);
 				previousZView = triangleX;
-				triangleY = (short) (BufferUtils.getSmart(triangleColorBuffer) + previousZView);
+				triangleY = (short) (ByteBufferUtils.getSmart(triangleColorBuffer) + previousZView);
 				previousZView = triangleY;
-				triangleZ = (short) (BufferUtils.getSmart(triangleColorBuffer) + previousZView);
+				triangleZ = (short) (ByteBufferUtils.getSmart(triangleColorBuffer) + previousZView);
 				previousZView = triangleZ;
 				facesX[triangle] = triangleX;				
 				facesY[triangle] = triangleY;				
@@ -288,7 +288,7 @@ public final class Model {
 				break;
 			case 2:
 				triangleY = triangleZ;
-				triangleZ = (short) (BufferUtils.getSmart(triangleColorBuffer) + previousZView);
+				triangleZ = (short) (ByteBufferUtils.getSmart(triangleColorBuffer) + previousZView);
 				previousZView = triangleZ;
 				facesX[triangle] = triangleX;
 				facesY[triangle] = triangleY;
@@ -299,7 +299,7 @@ public final class Model {
 				break;
 			case 3:
 				triangleX = triangleZ;
-				triangleZ = (short) (BufferUtils.getSmart(triangleColorBuffer) + previousZView);
+				triangleZ = (short) (ByteBufferUtils.getSmart(triangleColorBuffer) + previousZView);
 				previousZView = triangleZ;
 				facesX[triangle] = triangleX;
 				facesY[triangle] = triangleY;
@@ -311,7 +311,7 @@ public final class Model {
 			case 4:
 				short prev_x_view = triangleX;
 				triangleX = triangleY;
-				triangleZ = (short) (BufferUtils.getSmart(triangleColorBuffer) + previousZView);
+				triangleZ = (short) (ByteBufferUtils.getSmart(triangleColorBuffer) + previousZView);
 				triangleY = prev_x_view;
 				previousZView = triangleZ;
 				facesX[triangle] = triangleX;

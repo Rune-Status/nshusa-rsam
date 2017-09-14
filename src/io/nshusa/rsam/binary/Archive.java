@@ -7,7 +7,7 @@ import java.util.List;
 
 import io.nshusa.rsam.util.CompressionUtil;
 import io.nshusa.rsam.util.HashUtils;
-import io.nshusa.rsam.util.BufferUtils;
+import io.nshusa.rsam.util.ByteBufferUtils;
 
 public final class Archive {
 
@@ -71,8 +71,8 @@ public final class Archive {
 		
 		ByteBuffer archiveBuf = ByteBuffer.wrap(data);
 		
-		int uncompressedSize = BufferUtils.getTriByte(archiveBuf);
-		int compressedSize = BufferUtils.getTriByte(archiveBuf);
+		int uncompressedSize = ByteBufferUtils.readU24Int(archiveBuf);
+		int compressedSize = ByteBufferUtils.readU24Int(archiveBuf);
 		
 		if (uncompressedSize != compressedSize) {
 			byte[] decompressed = new byte[uncompressedSize];			
@@ -94,8 +94,8 @@ public final class Archive {
 		for (int i = 0; i < entries; i++) {
 			
 			hashes[i] = archiveBuf.getInt();
-			uncompressedSizes[i] = BufferUtils.getTriByte(archiveBuf);
-			compressedSizes[i] = BufferUtils.getTriByte(archiveBuf);
+			uncompressedSizes[i] = ByteBufferUtils.readU24Int(archiveBuf);
+			compressedSizes[i] = ByteBufferUtils.readU24Int(archiveBuf);
 			
 			byte[] entryData = new byte[compressedSizes[i]];
 			entryBuf.get(entryData, 0, compressedSizes[i]);
@@ -121,8 +121,8 @@ public final class Archive {
 		ByteBuffer buf;
 		if (!extracted) {
 			buf = ByteBuffer.allocate(size + 6);
-			BufferUtils.putMedium(buf, size);
-			BufferUtils.putMedium(buf, size);
+			ByteBufferUtils.putMedium(buf, size);
+			ByteBufferUtils.putMedium(buf, size);
 		} else {
 			buf = ByteBuffer.allocate(size);
 		}
@@ -131,8 +131,8 @@ public final class Archive {
 		
 		for (ArchiveEntry entry : entries) {			
 			buf.putInt(entry.getHash());
-			BufferUtils.putMedium(buf, entry.getUncompressedSize());
-			BufferUtils.putMedium(buf, entry.getCompresseedSize());
+			ByteBufferUtils.putMedium(buf, entry.getUncompressedSize());
+			ByteBufferUtils.putMedium(buf, entry.getCompresseedSize());
 		}
 		
 		for (ArchiveEntry file : entries) {			
@@ -149,8 +149,8 @@ public final class Archive {
 				throw new RuntimeException("error zipped size matches original");
 			}
 			buf = ByteBuffer.allocate(zipped.length + 6);
-			BufferUtils.putMedium(buf, unzipped.length);
-			BufferUtils.putMedium(buf, zipped.length);
+			ByteBufferUtils.putMedium(buf, unzipped.length);
+			ByteBufferUtils.putMedium(buf, zipped.length);
 			buf.put(zipped, 0, zipped.length);
 			data = buf.array();
 		}
