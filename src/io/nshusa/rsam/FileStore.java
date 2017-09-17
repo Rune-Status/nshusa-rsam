@@ -1,6 +1,7 @@
 package io.nshusa.rsam;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 
 public final class FileStore {
 	
@@ -23,7 +24,7 @@ public final class FileStore {
 		indexRaf = index;
 	}
 
-	public synchronized byte[] readFile(int fileId) {		
+	public synchronized ByteBuffer readFile(int fileId) {
 		try {
 			seek(indexRaf, fileId * 6);
 			
@@ -88,14 +89,14 @@ public final class FileStore {
 				sector = nextSector;
 			}
 
-			return temp;
+			return ByteBuffer.wrap(temp);
 		} catch (IOException _ex) {
 			return null;
 		}
 	}
 
 	public synchronized boolean writeFile(int id, byte data[], int length) {		
-		return writeFile(id, data, length, true) ? true : writeFile(id, data, length, false);
+		return writeFile(id, data, length, true) || writeFile(id, data, length, false);
 	}
 
 	private synchronized boolean writeFile(int position, byte bytes[], int length, boolean exists) {

@@ -10,7 +10,7 @@ public final class ByteBufferUtils {
 
 	}
 
-	public static void putMedium(ByteBuffer buffer, int value) {
+	public static void write24Int(ByteBuffer buffer, int value) {
 		buffer.put((byte) (value >> 16)).put((byte) (value >> 8)).put((byte) value);
 	}
 
