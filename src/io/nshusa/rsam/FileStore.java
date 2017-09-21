@@ -1,12 +1,20 @@
 package io.nshusa.rsam;
 
+import io.nshusa.rsam.binary.Archive;
 import io.nshusa.rsam.util.ByteBufferUtils;
 
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.zip.CRC32;
+import java.util.zip.Checksum;
 
 public final class FileStore {
+
+    private static final String[] crcFileNames = {"", "model_crc", "anim_crc", "midi_crc", "map_crc"};
+    private static final String[] versionFileNames = {"", "model_version", "anim_version", "midi_version", "map_version"};
+
+    private final Checksum checksum = new CRC32();
 	
 	public static final int ARCHIVE_FILE_STORE = 0;
 	public static final int MODEL_FILE_STORE = 1;
@@ -34,6 +42,43 @@ public final class FileStore {
         this.dataChannel = dataChannel;
         this.metaChannel = metaChannel;
 	}
+
+    public int calculateChecksum(Archive updateArchive, int fileId) throws IOException {
+
+        // you can't calculate the checksum for archives like this they don't have an associated version and crc file in the version list archive
+        if (storeId == 0) {
+            return 0;
+        }
+
+        ByteBuffer versionBuf = updateArchive.readFile(versionFileNames[storeId]);
+
+        int versionCount = versionBuf.capacity() / Short.BYTES;
+
+        int version = 0;
+
+        if (fileId < versionCount) {
+            versionBuf.position(fileId * Short.BYTES);
+
+            version = versionBuf.getShort() & 0xFFFF;
+        }
+
+        // read the file
+        ByteBuffer fileBuf = readFile(fileId);
+
+        if (fileBuf == null) {
+            return 0;
+        }
+
+        // file data first then version after
+        ByteBuffer buf = ByteBuffer.allocate(fileBuf.capacity() + Short.BYTES);
+        buf.put(fileBuf);
+        buf.putShort((short) version);
+
+        checksum.reset();
+        checksum.update(buf.array(), 0, buf.capacity());
+
+        return (int) checksum.getValue();
+    }
 
 	public synchronized ByteBuffer readFile(int fileId) {
 		try {
