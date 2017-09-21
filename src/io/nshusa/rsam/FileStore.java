@@ -10,8 +10,13 @@ public final class FileStore {
 	public static final int ANIMATION_FILE_STORE = 2;
 	public static final int MIDI_FILE_STORE = 3;
 	public static final int MAP_FILE_STORE = 4;
-	
-	private static final byte[] buffer = new byte[520];
+
+	private static final int SECTOR_LENGTH = 512;
+	private static final int HEADER_LENGTH = 8;
+
+	private static final byte[] buffer = new byte[SECTOR_LENGTH + HEADER_LENGTH];
+
+	//private static final ByteBuffer buffer = ByteBuffer.allocate(SECTOR_LENGTH + HEADER_LENGTH);
 	
 	private final int storeId;	
 	
