@@ -1,6 +1,9 @@
 # RuneScape Asset Manager (RSAM)
 A lightweight library for accessing and modifying RuneScape's 2006 file system. It's designed to be lightweight and easy to use.
 
+### Required Libraries
+[Apache Commons Compress 1.14](https://mvnrepository.com/artifact/org.apache.commons/commons-compress/1.14)
+
 ### Loading cache
 ```java
  try(IndexedFileSystem fs = IndexedFileSystem.init(Paths.get("./Cache/"))) {
