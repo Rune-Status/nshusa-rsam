@@ -3,6 +3,7 @@ package io.nshusa.rsam;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -81,10 +82,16 @@ public final class IndexedFileSystem implements Closeable {
 		return fileStores[storeId];
 	}
 
+	public ByteBuffer readFile(int storeId, int fileId) {
+		FileStore store = getStore(storeId);
+
+		return store.readFile(fileId);
+	}
+
 	public Path getRoot() {
 		return root;
 	}
-	
+
 	public int getStoreCount() {		
 		int count = 0;		
 		for (int i = 0; i < 255; i++) {			
