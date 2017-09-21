@@ -36,3 +36,23 @@ if (archive.contains("obj.dat")) {
 }
 ```
 
+### Reading from an ImageArchive
+```java
+        try(IndexedFileSystem fs = IndexedFileSystem.init(Paths.get("./Cache/"))) {
+
+            FileStore store = fs.getStore(FileStore.ARCHIVE_FILE_STORE);
+
+            Archive mediaArchive = Archive.decode(store.readFile(Archive.MEDIA_ARCHIVE));
+
+            ImageArchive imageArchive = ImageArchive.decode(mediaArchive, "mod_icons.dat");
+
+            for (int i = 0; i < imageArchive.getSprites().size(); i++) {
+                Sprite sprite = imageArchive.getSprites().get(i);
+
+                ImageIO.write(sprite.toBufferedImage(), "png", new File(output, i + ".png"));
+            }
+
+            System.out.println(String.format("There are %d sprites in archive=%d", imageArchive.getSprites().size(), imageArchive.getHash()));
+
+        }
+```
