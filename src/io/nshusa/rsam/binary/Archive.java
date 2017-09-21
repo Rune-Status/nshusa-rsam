@@ -6,6 +6,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.zip.CRC32;
+import java.util.zip.Checksum;
 
 import io.nshusa.rsam.util.CompressionUtil;
 import io.nshusa.rsam.util.HashUtils;
@@ -152,6 +154,42 @@ public final class Archive {
 		
 		return data;
 
+	}
+
+	public static ByteBuffer encodeChecksum(Archive[] archives) throws IOException {
+		// Integer.BYTES represents the crc stores as an integer which has 4 bytes, + Intger.BYTES because a pre calculated value is after the crcs which is in the form of a int as well
+		ByteBuffer buffer = ByteBuffer.allocate((archives.length * Integer.BYTES) + Integer.BYTES);
+
+		Checksum checksum = new CRC32();
+
+		int[] crcs = new int[archives.length];
+
+		for (int i = 0; i < crcs.length; i++) {
+			Archive archive = archives[i];
+
+			checksum.reset();
+
+			byte[] encoded = archive.encode();
+
+			checksum.update(encoded, 0, encoded.length);
+
+			int crc = (int)checksum.getValue();
+
+			crcs[i] = crc;
+
+			buffer.putInt(crc);
+		}
+
+		// predefined value
+		int calculated = 1234;
+
+		for (int index = 0; index < archives.length; index++) {
+			calculated = (calculated << 1) + crcs[index];
+		}
+
+		buffer.putShort((short)calculated);
+
+		return buffer;
 	}
 
 	public ByteBuffer readFile(String name) throws IOException {
