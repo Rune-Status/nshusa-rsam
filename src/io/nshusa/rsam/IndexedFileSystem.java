@@ -19,11 +19,9 @@ public final class IndexedFileSystem implements Closeable {
 		this.root = root;
 	}
 	
-	public static IndexedFileSystem init(Path root) {
+	public static IndexedFileSystem init(Path root) throws IOException {
 		IndexedFileSystem indexedFileSystem = new IndexedFileSystem(root);
-		
-		try {
-		
+
 		Path dataPath = root.resolve("main_file_cache.dat");
 		
 		if (!Files.exists(dataPath)) {
@@ -40,11 +38,6 @@ public final class IndexedFileSystem implements Closeable {
 		}
 		
 		indexedFileSystem.loaded = true;
-		
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		}
-		
 		return indexedFileSystem;
 	}
 	
