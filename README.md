@@ -18,12 +18,19 @@ FileStore store = fs.getStore(FileStore.MODEL_FILE_STORE);
 ### Reading from a file store
 ```java
 store.readFile(100);
+
+// or
+
+fs.readFile(FileStore.MODEL_FILE_STORE, 100);
 ```
 
 ### Accessing a file archive
 ```java
 FileStore archiveStore = fs.getStore(FileStore.ARCHIVE_FILE_STORE);
-Archive archive = Archive.decode(archiveStore.readFile(Archive.CONFIG_ARCHIVE));
+Archive configArchive = Archive.decode(archiveStore.readFile(Archive.CONFIG_ARCHIVE));
+
+// or
+Archive configArchive = Archive.decode(fs.readFile(FileStore.ARCHIVE_FILE_STORE, Archive.CONFIG_ARCHIVE));
 ```
 
 ### Reading from a file archive
