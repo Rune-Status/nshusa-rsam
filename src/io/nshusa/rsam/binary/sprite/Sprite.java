@@ -43,8 +43,8 @@ public final class Sprite {
 	}
 
 	public static Sprite decode(Archive archive, int hash, int id) throws IOException {
-		ByteBuffer dataBuf = archive.readFile(hash);
-		ByteBuffer metaBuf = archive.readFile("index.dat");
+		ByteBuffer dataBuf = ByteBuffer.wrap(archive.readFile(hash));
+		ByteBuffer metaBuf = ByteBuffer.wrap(archive.readFile("index.dat"));
 
 		Sprite sprite = new Sprite();
 
@@ -74,7 +74,7 @@ public final class Sprite {
 			metaBuf.position(metaBuf.position() + 2);
 
 			// skip the current array of pixels
-			dataBuf.position(dataBuf.position() + (metaBuf.getShort() & 0xFFFF) * (metaBuf.getShort() & 0xFFFF));
+			dataBuf.position(dataBuf.position() + ((metaBuf.getShort() & 0xFFFF) * (metaBuf.getShort() & 0xFFFF)));
 
 			// skip the current format
 			metaBuf.position(metaBuf.position() + 1);
