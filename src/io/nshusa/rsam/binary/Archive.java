@@ -277,4 +277,8 @@ public final class Archive {
 		return entries;
 	}
 
+	public boolean isExtracted() {
+		return extracted;
+	}
+
 }
