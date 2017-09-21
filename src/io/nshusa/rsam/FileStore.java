@@ -11,8 +11,8 @@ import java.util.zip.Checksum;
 
 public final class FileStore {
 
-    private static final String[] crcFileNames = {"", "model_crc", "anim_crc", "midi_crc", "map_crc"};
-    private static final String[] versionFileNames = {"", "model_version", "anim_version", "midi_version", "map_version"};
+    private static final String[] crcFileNames = { "model_crc", "anim_crc", "midi_crc", "map_crc"};
+    private static final String[] versionFileNames = {"model_version", "anim_version", "midi_version", "map_version"};
 
     private final Checksum checksum = new CRC32();
 	
@@ -44,13 +44,12 @@ public final class FileStore {
 	}
 
     public int calculateChecksum(Archive updateArchive, int fileId) throws IOException {
-
         // you can't calculate the checksum for archives like this they don't have an associated version and crc file in the version list archive
         if (storeId == 0) {
             return 0;
         }
 
-        ByteBuffer versionBuf = updateArchive.readFile(versionFileNames[storeId]);
+        ByteBuffer versionBuf = updateArchive.readFile(versionFileNames[storeId - 1]);
 
         int versionCount = versionBuf.capacity() / Short.BYTES;
 
@@ -129,7 +128,7 @@ public final class FileStore {
                     currentIndex = buffer.get() & 0xFF;
                 }
 
-                if (fileId != currentFile || chunk != currentChunk || storeId != currentIndex) {
+                if (fileId != currentFile || chunk != currentChunk || (storeId + 1) != currentIndex) {
                     return null;
                 }
                 if (nextBlock < 0 || nextBlock > dataChannel.size() / TOTAL_BLOCK_LENGTH) {
@@ -221,7 +220,7 @@ public final class FileStore {
                         currentIndex = buffer.get() & 0xFF;
                     }
 
-                    if (fileId != currentFile || chunk != currentChunk || storeId != currentIndex) {
+                    if (fileId != currentFile || chunk != currentChunk || (storeId + 1) != currentIndex) {
                         return false;
                     }
 
@@ -255,12 +254,12 @@ public final class FileStore {
                     buffer.putShort((short) fileId);
                     buffer.putShort((short) chunk);
                     ByteBufferUtils.write24Int(buffer, nextBlock);
-                    buffer.put((byte) storeId);
+                    buffer.put((byte) (storeId + 1));
                 } else {
                     buffer.putInt(fileId);
                     buffer.putShort((short) chunk);
                     ByteBufferUtils.write24Int(buffer, nextBlock);
-                    buffer.put((byte) storeId);
+                    buffer.put((byte) (storeId + 1));
                 }
 
                 int blockSize = remaining > blockLength ? blockLength : remaining;
