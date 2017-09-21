@@ -34,7 +34,7 @@ public final class IndexedFileSystem implements Closeable {
 		for (int i = 0; i < 255; i++) {			
 			Path indexPath = root.resolve("main_file_cache.idx" + i);			
 			if (Files.exists(indexPath)) {				
-				indexedFileSystem.fileStores[i] = new FileStore(i + 1, dataRaf, new RandomAccessFile(indexPath.toFile(), "rw"));
+				indexedFileSystem.fileStores[i] = new FileStore(i + 1, dataRaf.getChannel(), new RandomAccessFile(indexPath.toFile(), "rw").getChannel());
 			}			
 		}
 		
@@ -70,7 +70,7 @@ public final class IndexedFileSystem implements Closeable {
 		
 		RandomAccessFile dataRaf = new RandomAccessFile(dataPath.toFile(), "rw");
 		
-		fileStores[storeId] = new FileStore(storeId + 1, dataRaf, new RandomAccessFile(path.toFile(), "rw"));		
+		fileStores[storeId] = new FileStore(storeId + 1, dataRaf.getChannel(), new RandomAccessFile(path.toFile(), "rw").getChannel());
 	}
 	
 	public FileStore getStore(int storeId) {
@@ -109,8 +109,7 @@ public final class IndexedFileSystem implements Closeable {
 			}
 			
 			synchronized(fileStore) {
-				fileStore.dataRaf.close();
-				fileStore.indexRaf.close();
+				fileStore.close();
 			}
 			
 		}

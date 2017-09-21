@@ -23,13 +23,7 @@ public final class ByteBufferUtils {
 	}
 
 	public static int readU24Int(ByteBuffer buffer) {
-		return (buffer.get() & 0x0ff) << 16 |(buffer.get() & 0x0ff) << 8 | (buffer.get() & 0x0ff);
-	}
-
-	public static void writeU24Int(int rgb, DataOutputStream dos) throws IOException {
-		dos.writeByte(rgb >> 16);
-		dos.writeByte(rgb >> 8);
-		dos.writeByte(rgb);
+		return (buffer.get() & 0x0ff) << 16 | (buffer.get() & 0x0ff) << 8 | (buffer.get() & 0x0ff);
 	}
 
 	public static int getSmart(ByteBuffer buffer) {
