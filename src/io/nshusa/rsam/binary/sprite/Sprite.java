@@ -43,8 +43,8 @@ public final class Sprite {
 	}
 
 	public static Sprite decode(Archive archive, int hash, int id) throws IOException {
-		ByteBuffer dataBuf = ByteBuffer.wrap(archive.readFile(hash));
-		ByteBuffer metaBuf = ByteBuffer.wrap(archive.readFile("index.dat"));
+		ByteBuffer dataBuf = archive.readFile(hash);
+		ByteBuffer metaBuf = archive.readFile("index.dat");
 
 		Sprite sprite = new Sprite();
 

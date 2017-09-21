@@ -25,8 +25,8 @@ public final class IndexedImage extends Rasterizer2D {
 	}
 	
 	public static IndexedImage decode(Archive archive, String s, int i) throws IOException {
-		ByteBuffer dataBuffer = ByteBuffer.wrap(archive.readFile(s + ".dat"));
-		ByteBuffer metaBuffer = ByteBuffer.wrap(archive.readFile("index.dat"));
+		ByteBuffer dataBuffer = archive.readFile(s + ".dat");
+		ByteBuffer metaBuffer = archive.readFile("index.dat");
 		
 		metaBuffer.position(dataBuffer.getShort() & 0xffff);
 		

@@ -27,13 +27,13 @@ public final class Archive {
 		private final int hash;
 		private final int uncompressedSize;
 		private final int compressedSize;
-		private final byte[] bzipped;
+		private final ByteBuffer buffer;
 
-		public ArchiveEntry(int hash, int uncompressedSize, int compressedSize, byte[] bzipped) {
+		public ArchiveEntry(int hash, int uncompressedSize, int compressedSize, ByteBuffer buffer) {
 			this.hash = hash;
 			this.uncompressedSize = uncompressedSize;
 			this.compressedSize = compressedSize;
-			this.bzipped = bzipped;
+			this.buffer = buffer;
 		}
 
 		public int getHash() {
@@ -48,8 +48,8 @@ public final class Archive {
 			return compressedSize;
 		}
 
-		public byte[] getData() {
-			return bzipped;
+		public ByteBuffer getBuffer() {
+			return buffer;
 		}
 
 	}
@@ -57,58 +57,51 @@ public final class Archive {
 	private boolean extracted;	
 	
 	private final List<ArchiveEntry> entries = new ArrayList<>();
-	
-	private Archive() {		
-
-	}
 
 	public Archive(ArchiveEntry[] entries) {
 		this.entries.addAll(Arrays.asList(entries));
 	}
-	
-	public static Archive create() {
-		Archive archive = new Archive();
-		return archive;
-	}
 
-	public static Archive decode(ByteBuffer archiveBuf) throws IOException {
-		Archive archive = new Archive();
+	public static Archive decode(ByteBuffer buffer) throws IOException {
+		final int uncompressedLength = ByteBufferUtils.readU24Int(buffer);
+		final int compressedLength = ByteBufferUtils.readU24Int(buffer);
 
-		int uncompressedSize = ByteBufferUtils.readU24Int(archiveBuf);
-		int compressedSize = ByteBufferUtils.readU24Int(archiveBuf);
+		boolean extracted = false;
 
-		archive.extracted = false;
-
-		if (uncompressedSize != compressedSize) {
-			byte[] compressed = new byte[compressedSize];
-			byte[] decompressed = new byte[uncompressedSize];
-			archiveBuf.get(compressed);
+		if (uncompressedLength != compressedLength) {
+			final byte[] compressed = new byte[compressedLength];
+			final byte[] decompressed = new byte[uncompressedLength];
+			buffer.get(compressed);
 			CompressionUtil.debzip2(compressed, decompressed);
-			archiveBuf = ByteBuffer.wrap(decompressed);
-			archive.extracted = true;
+			buffer = ByteBuffer.wrap(decompressed);
+			extracted = true;
 		}
 
-		int entries = archiveBuf.getShort() & 0xffff;
+		final int entries = buffer.getShort() & 0xFFFF;
 
-		ByteBuffer entryBuf = ByteBuffer.wrap(archiveBuf.array());
+		final int[] hashes = new int[entries];
+		final int[] uncompressedSizes = new int[entries];
+		final int[] compressedSizes = new int[entries];
 
-		entryBuf.position(archiveBuf.position() + entries * 10);
+		final ArchiveEntry[] archiveEntries = new ArchiveEntry[entries];
 
-		int[] hashes = new int[entries];
-		int[] uncompressedSizes = new int[entries];
-		int[] compressedSizes = new int[entries];
+		final ByteBuffer entryBuf = ByteBuffer.wrap(buffer.array());
+		entryBuf.position(buffer.position() + entries * 10);
 
 		for (int i = 0; i < entries; i++) {
 
-			hashes[i] = archiveBuf.getInt();
-			uncompressedSizes[i] = ByteBufferUtils.readU24Int(archiveBuf);
-			compressedSizes[i] = ByteBufferUtils.readU24Int(archiveBuf);
+			hashes[i] = buffer.getInt();
+			uncompressedSizes[i] = ByteBufferUtils.readU24Int(buffer);
+			compressedSizes[i] = ByteBufferUtils.readU24Int(buffer);
 
-			byte[] entryData = new byte[compressedSizes[i]];
-			entryBuf.get(entryData, 0, compressedSizes[i]);
+			final byte[] entryData = new byte[compressedSizes[i]];
+			entryBuf.get(entryData);
 
-			archive.getEntries().add(new ArchiveEntry(hashes[i], uncompressedSizes[i], compressedSizes[i], entryData));
+			archiveEntries[i] = new ArchiveEntry(hashes[i], uncompressedSizes[i], compressedSizes[i], ByteBuffer.wrap(entryData));
 		}
+
+		final Archive archive = new Archive(archiveEntries);
+		archive.extracted = extracted;
 
 		return archive;
 	}
@@ -138,7 +131,7 @@ public final class Archive {
 		}
 		
 		for (ArchiveEntry file : entries) {			
-			buffer.put(file.getData());
+			buffer.put(file.getBuffer());
 		}
 		
 		byte[] data;
@@ -161,26 +154,27 @@ public final class Archive {
 
 	}
 
-	public byte[] readFile(String name) throws IOException {
+	public ByteBuffer readFile(String name) throws IOException {
 		return readFile(HashUtils.nameToHash(name));
 	}
 
-	public byte[] readFile(int hash) throws IOException {
+	public ByteBuffer readFile(int hash) throws IOException {
 		for (ArchiveEntry entry : entries) {
-			if (entry.getHash() == hash) {
 
-				byte[] decompressed = new byte[entry.getUncompressedSize()];
-
-				if (extracted) {
-					System.arraycopy(entry.getData(), 0, decompressed, 0, decompressed.length);
-				} else {
-					CompressionUtil.debzip2(entry.getData(), decompressed);
-				}
-				return decompressed;
+			if (entry.getHash() != hash) {
+				continue;
 			}
-		}
 
-		return null;
+			if (!extracted) {
+				byte[] decompressed = new byte[entry.getUncompressedSize()];
+				CompressionUtil.debzip2(entry.getBuffer().array(), decompressed);
+				return ByteBuffer.wrap(decompressed);
+			} else {
+				return entry.getBuffer();
+			}
+
+		}
+		throw new FileNotFoundException(String.format("file=%d could not be found.", hash));
 	}
 	
 	public ArchiveEntry getEntry(String name) throws FileNotFoundException {
