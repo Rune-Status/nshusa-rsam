@@ -39,7 +39,11 @@ FileStore archiveStore = fs.getStore(FileStore.ARCHIVE_FILE_STORE);
 Archive archive = Archive.decode(archiveStore.readFile(Archive.CONFIG_ARCHIVE));
 
 if (archive.contains("obj.dat")) {
-    byte[] data = archive.readFile("obj.dat");
+    ByteBuffer dataBuf = archive.readFile("obj.dat");
+
+    try(FileChannel channel = new FileOutputStream(new File("./obj.dat")).getChannel()) {
+        channel.write(dataBuf);
+    }
 }
 ```
 
