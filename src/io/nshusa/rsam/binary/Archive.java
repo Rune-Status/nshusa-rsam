@@ -216,22 +216,43 @@ public final class Archive {
 		throw new FileNotFoundException(String.format("file=%d could not be found.", hash));
 	}
 
+	public boolean replaceFile(int slot, String name, byte[] data) throws IOException {
+		return replaceFile(slot, HashUtils.nameToHash(name), data);
+	}
+
+	public boolean replaceFile(int slot, int hash, byte[] data) throws IOException {
+		if (slot >= entries.size()) {
+			return false;
+		}
+
+		if (!extracted) {
+			byte[] compressed = CompressionUtil.bzip2(data);
+			entries.set(slot, new Archive.ArchiveEntry(hash, data.length, compressed.length, compressed));
+		} else {
+			entries.set(slot, new Archive.ArchiveEntry(hash, data.length, data.length, data));
+		}
+
+		return true;
+	}
+
 	public boolean writeFile(String name, byte[] data) throws IOException {
 		return writeFile(HashUtils.nameToHash(name), data);
 	}
 
 	public boolean writeFile(int hash, byte[] data) throws IOException {
 		if (contains(hash)) {
-			remove(hash);
+			replaceFile(indexOf(hash), hash, data);
 		}
 
+		ArchiveEntry entry;
 		if (!extracted) {
 			byte[] compressed = CompressionUtil.bzip2(data);
-			entries.add(new Archive.ArchiveEntry(hash, data.length, compressed.length, compressed));
+			entry = new Archive.ArchiveEntry(hash, data.length, compressed.length, compressed);
 		} else {
-			entries.add(new Archive.ArchiveEntry(hash, data.length, data.length, data));
+			entry = new Archive.ArchiveEntry(hash, data.length, data.length, data);
 		}
 
+		entries.add(entry);
 		return true;
 	}
 
