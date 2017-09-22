@@ -30,13 +30,13 @@ public final class Archive {
 		private final int hash;
 		private final int uncompressedSize;
 		private final int compressedSize;
-		private final ByteBuffer buffer;
+		private final byte[] data;
 
-		public ArchiveEntry(int hash, int uncompressedSize, int compressedSize, ByteBuffer buffer) {
+		public ArchiveEntry(int hash, int uncompressedSize, int compressedSize, byte[] data) {
 			this.hash = hash;
 			this.uncompressedSize = uncompressedSize;
 			this.compressedSize = compressedSize;
-			this.buffer = buffer;
+			this.data = data;
 		}
 
 		public int getHash() {
@@ -51,8 +51,8 @@ public final class Archive {
 			return compressedSize;
 		}
 
-		public ByteBuffer getBuffer() {
-			return buffer;
+		public byte[] getData() {
+			return data;
 		}
 
 	}
@@ -100,7 +100,7 @@ public final class Archive {
 			final byte[] entryData = new byte[compressedSizes[i]];
 			entryBuf.get(entryData);
 
-			archiveEntries[i] = new ArchiveEntry(hashes[i], uncompressedSizes[i], compressedSizes[i], ByteBuffer.wrap(entryData));
+			archiveEntries[i] = new ArchiveEntry(hashes[i], uncompressedSizes[i], compressedSizes[i], entryData);
 		}
 
 		final Archive archive = new Archive(archiveEntries);
@@ -134,7 +134,7 @@ public final class Archive {
 		}
 		
 		for (ArchiveEntry file : entries) {			
-			buffer.put(file.getBuffer());
+			buffer.put(file.getData());
 		}
 		
 		byte[] data;
@@ -206,10 +206,10 @@ public final class Archive {
 
 			if (!extracted) {
 				byte[] decompressed = new byte[entry.getUncompressedSize()];
-				CompressionUtil.debzip2(entry.getBuffer().array(), decompressed);
+				CompressionUtil.debzip2(entry.getData(), decompressed);
 				return ByteBuffer.wrap(decompressed);
 			} else {
-				return entry.getBuffer();
+				return ByteBuffer.wrap(entry.getData());
 			}
 
 		}
@@ -227,9 +227,9 @@ public final class Archive {
 
 		if (!extracted) {
 			byte[] compressed = CompressionUtil.bzip2(data);
-			entries.add(new Archive.ArchiveEntry(hash, data.length, compressed.length, ByteBuffer.wrap(compressed)));
+			entries.add(new Archive.ArchiveEntry(hash, data.length, compressed.length, compressed));
 		} else {
-			entries.add(new Archive.ArchiveEntry(hash, data.length, data.length, ByteBuffer.wrap(data)));
+			entries.add(new Archive.ArchiveEntry(hash, data.length, data.length, data));
 		}
 
 		return true;
