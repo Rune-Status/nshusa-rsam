@@ -214,6 +214,25 @@ public final class Archive {
 		}
 		throw new FileNotFoundException(String.format("file=%d could not be found.", hash));
 	}
+
+	public boolean writeFile(String name, byte[] data) throws IOException {
+		return writeFile(HashUtils.nameToHash(name), data);
+	}
+
+	public boolean writeFile(int hash, byte[] data) throws IOException {
+		if (contains(hash)) {
+			remove(hash);
+		}
+
+		if (!extracted) {
+			byte[] compressed = CompressionUtil.bzip2(data);
+			entries.add(new Archive.ArchiveEntry(hash, data.length, compressed.length, ByteBuffer.wrap(compressed)));
+		} else {
+			entries.add(new Archive.ArchiveEntry(hash, data.length, data.length, ByteBuffer.wrap(data)));
+		}
+
+		return true;
+	}
 	
 	public ArchiveEntry getEntry(String name) throws FileNotFoundException {
 		return getEntry(HashUtils.nameToHash(name));
@@ -272,9 +291,9 @@ public final class Archive {
 		}		
 		return false;
 	}
-	
-	public List<ArchiveEntry> getEntries() {
-		return entries;
+
+	public int getEntryCount() {
+		return entries.size();
 	}
 
 	public boolean isExtracted() {
