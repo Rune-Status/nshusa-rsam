@@ -152,12 +152,15 @@ public final class FileStore {
 		}
 	}
 
-	public synchronized boolean writeFile(int id, ByteBuffer dataBuf, int length) {
-		return writeFile(id, dataBuf, length, true) || writeFile(id, dataBuf, length, false);
+	public synchronized boolean writeFile(int id, byte[] data) {
+		return writeFile(id, data, true) || writeFile(id, data, false);
 	}
 
-	private synchronized boolean writeFile(int fileId, ByteBuffer dataBuf, int length, boolean exists) {
+	private synchronized boolean writeFile(int fileId, byte[] data, boolean exists) {
 		try {
+
+		    ByteBuffer dataBuf = ByteBuffer.wrap(data);
+
 			int block;
 			
 			if (exists) {
@@ -189,13 +192,13 @@ public final class FileStore {
 			}
 
 			buffer.position(0);
-			ByteBufferUtils.write24Int(buffer, length);
+			ByteBufferUtils.write24Int(buffer, data.length);
 			ByteBufferUtils.write24Int(buffer, block);
 			buffer.flip();
 
 			metaChannel.write(buffer, fileId * META_BLOCK_LENGTH);
 
-            int remaining = length;
+            int remaining = data.length;
             int chunk = 0;
             int blockLength = fileId <= 0xFFFF ? BLOCK_LENGTH : EXPANDED_BLOCK_LENGTH;
             int headerLength = fileId <= 0xFFFF ? HEADER_LENGTH : EXPANDED_HEADER_LENGTH;
