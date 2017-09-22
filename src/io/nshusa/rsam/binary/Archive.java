@@ -3,10 +3,7 @@ package io.nshusa.rsam.binary;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
@@ -59,10 +56,10 @@ public final class Archive {
 
 	private boolean extracted;	
 	
-	private final List<ArchiveEntry> entries = new ArrayList<>();
+	private final Map<Integer, ArchiveEntry> entries = new LinkedHashMap<>();
 
 	public Archive(ArchiveEntry[] entries) {
-		this.entries.addAll(Arrays.asList(entries));
+		Arrays.asList(entries).forEach(it -> this.entries.put(it.getHash(), it));
 	}
 
 	public static Archive decode(ByteBuffer buffer) throws IOException {
@@ -112,7 +109,7 @@ public final class Archive {
 	public synchronized byte[] encode() throws IOException {
 		int size = 2 + entries.size() * 10;
 		
-		for (ArchiveEntry file : entries) {			
+		for (ArchiveEntry file : entries.values()) {
 			size += file.getCompresseedSize();
 		}
 		
@@ -127,13 +124,13 @@ public final class Archive {
 		
 		buffer.putShort((short)entries.size());
 		
-		for (ArchiveEntry entry : entries) {			
+		for (ArchiveEntry entry : entries.values()) {
 			buffer.putInt(entry.getHash());
 			ByteBufferUtils.write24Int(buffer, entry.getUncompressedSize());
 			ByteBufferUtils.write24Int(buffer, entry.getCompresseedSize());
 		}
 		
-		for (ArchiveEntry file : entries) {			
+		for (ArchiveEntry file : entries.values()) {
 			buffer.put(file.getData());
 		}
 		
@@ -198,7 +195,7 @@ public final class Archive {
 	}
 
 	public ByteBuffer readFile(int hash) throws IOException {
-		for (ArchiveEntry entry : entries) {
+		for (ArchiveEntry entry : entries.values()) {
 
 			if (entry.getHash() != hash) {
 				continue;
@@ -216,22 +213,24 @@ public final class Archive {
 		throw new FileNotFoundException(String.format("file=%d could not be found.", hash));
 	}
 
-	public boolean replaceFile(int slot, String name, byte[] data) throws IOException {
-		return replaceFile(slot, HashUtils.nameToHash(name), data);
+	public boolean replaceFile(int oldHash, String newName, byte[] data) throws IOException {
+		return replaceFile(oldHash, HashUtils.nameToHash(newName), data);
 	}
 
-	public boolean replaceFile(int slot, int hash, byte[] data) throws IOException {
-		if (slot >= entries.size()) {
+	public boolean replaceFile(int oldHash, int newHash, byte[] data) throws IOException {
+		if (entries.containsKey(oldHash)) {
 			return false;
 		}
 
+		ArchiveEntry entry;
 		if (!extracted) {
 			byte[] compressed = CompressionUtil.bzip2(data);
-			entries.set(slot, new Archive.ArchiveEntry(hash, data.length, compressed.length, compressed));
+			entry = new Archive.ArchiveEntry(newHash, data.length, compressed.length, compressed);
 		} else {
-			entries.set(slot, new Archive.ArchiveEntry(hash, data.length, data.length, data));
+			entry = new Archive.ArchiveEntry(newHash, data.length, data.length, data);
 		}
 
+		entries.replace(oldHash, entry);
 		return true;
 	}
 
@@ -240,8 +239,8 @@ public final class Archive {
 	}
 
 	public boolean writeFile(int hash, byte[] data) throws IOException {
-		if (contains(hash)) {
-			replaceFile(indexOf(hash), hash, data);
+		if (entries.containsKey(hash)) {
+			replaceFile(hash, hash, data);
 		}
 
 		ArchiveEntry entry;
@@ -252,7 +251,7 @@ public final class Archive {
 			entry = new Archive.ArchiveEntry(hash, data.length, data.length, data);
 		}
 
-		entries.add(entry);
+		entries.put(hash, entry);
 		return true;
 	}
 
@@ -261,15 +260,17 @@ public final class Archive {
 	}
 
 	public boolean rename(int oldHash, int newHash) {
-		final int slot = indexOf(oldHash);
-
-		if (slot == -1) {
+		if (!entries.containsKey(oldHash)) {
 			return false;
 		}
 
-		ArchiveEntry old = entries.get(slot);
+		ArchiveEntry old = entries.get(oldHash);
 
-		entries.set(slot, new ArchiveEntry(newHash, old.getUncompressedSize(), old.getCompresseedSize(), old.getData()));
+		if (old == null) {
+			return false;
+		}
+
+		entries.replace(oldHash, new ArchiveEntry(newHash, old.getUncompressedSize(), old.getCompresseedSize(), old.getData()));
 		return true;
 	}
 	
@@ -278,11 +279,10 @@ public final class Archive {
 	}
 	
 	public ArchiveEntry getEntry(int hash) throws FileNotFoundException {
-		for (ArchiveEntry entry : entries) {
-			if (entry.getHash() == hash) {
-				return entry;
-			}
+		if (entries.containsKey(hash)) {
+			return entries.get(hash);
 		}
+
 		throw new FileNotFoundException(String.format("Could not find entry: %d.", hash));
 	}
 	
@@ -291,14 +291,14 @@ public final class Archive {
 	}
 	
 	public int indexOf(int hash) {
-		for (int i = 0; i < entries.size(); i++) {
-			ArchiveEntry entry = entries.get(i);			
-			
+		int index = 0;
+		for (ArchiveEntry entry : entries.values()) {
 			if (entry.getHash() == hash) {
-				return i;
-			}			
+				return index;
+			}
+			index++;
 		}
-		
+
 		return -1;
 	}
 	
@@ -307,27 +307,18 @@ public final class Archive {
 	}
 	
 	public boolean contains(int hash) {
-		for (ArchiveEntry entry : entries) {
-			if (entry.getHash() == hash) {
-				return true;
-			}
-		}
-		return false;
+		return entries.containsKey(hash);
 	}
 	
 	public boolean remove(String name) {
 		return remove(HashUtils.nameToHash(name));
 	}
 	
-	public boolean remove(int hash) {		
-		for (int i = 0; i < entries.size(); i++) {
-			ArchiveEntry entry = entries.get(i);			
-			
-			if (entry.getHash() == hash) {
-				entries.remove(i);
-				return true;
-			}			
-		}		
+	public boolean remove(int hash) {
+		if (entries.containsKey(hash)) {
+			entries.remove(hash);
+			return true;
+		}
 		return false;
 	}
 
@@ -336,7 +327,7 @@ public final class Archive {
 	}
 
 	public ArchiveEntry[] getEntries() {
-		return entries.toArray(new ArchiveEntry[0]);
+		return entries.values().toArray(new ArchiveEntry[0]);
 	}
 
 	public boolean isExtracted() {
