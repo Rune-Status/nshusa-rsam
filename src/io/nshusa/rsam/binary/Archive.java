@@ -285,6 +285,22 @@ public final class Archive {
 
 		throw new FileNotFoundException(String.format("Could not find entry: %d.", hash));
 	}
+
+	public ArchiveEntry getEntryAt(int index) throws IOException {
+		if (index >= entries.size()) {
+			throw new FileNotFoundException(String.format("File at index=%d could not be found.", index));
+		}
+
+		int pos = 0;
+		for (ArchiveEntry entry : entries.values()) {
+			if (pos == index) {
+				return entry;
+			}
+			pos++;
+		}
+
+		throw new FileNotFoundException(String.format("File at index=%d could not be found.", index));
+	}
 	
 	public int indexOf(String name) {
 		return indexOf(HashUtils.nameToHash(name));
