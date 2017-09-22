@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
@@ -294,6 +295,10 @@ public final class Archive {
 
 	public int getEntryCount() {
 		return entries.size();
+	}
+
+	public ArchiveEntry[] getEntries() {
+		return entries.toArray(new ArchiveEntry[0]);
 	}
 
 	public boolean isExtracted() {
