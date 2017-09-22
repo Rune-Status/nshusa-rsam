@@ -234,6 +234,23 @@ public final class Archive {
 
 		return true;
 	}
+
+	public boolean rename(int oldHash, String newName) {
+		return rename(oldHash, HashUtils.nameToHash(newName));
+	}
+
+	public boolean rename(int oldHash, int newHash) {
+		final int slot = indexOf(oldHash);
+
+		if (slot == -1) {
+			return false;
+		}
+
+		ArchiveEntry old = entries.get(slot);
+
+		entries.set(slot, new ArchiveEntry(newHash, old.getUncompressedSize(), old.getCompresseedSize(), old.getData()));
+		return true;
+	}
 	
 	public ArchiveEntry getEntry(String name) throws FileNotFoundException {
 		return getEntry(HashUtils.nameToHash(name));
