@@ -3,7 +3,7 @@ package io.nshusa.rsam;
 import io.nshusa.rsam.binary.Archive;
 import io.nshusa.rsam.util.ByteBufferUtils;
 
-import java.io.*;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.zip.CRC32;
@@ -11,16 +11,16 @@ import java.util.zip.Checksum;
 
 public final class FileStore {
 
-    private static final String[] crcFileNames = { "model_crc", "anim_crc", "midi_crc", "map_crc"};
+    private static final String[] crcFileNames = {"model_crc", "anim_crc", "midi_crc", "map_crc"};
     private static final String[] versionFileNames = {"model_version", "anim_version", "midi_version", "map_version"};
 
     private final Checksum checksum = new CRC32();
-	
-	public static final int ARCHIVE_FILE_STORE = 0;
-	public static final int MODEL_FILE_STORE = 1;
-	public static final int ANIMATION_FILE_STORE = 2;
-	public static final int MIDI_FILE_STORE = 3;
-	public static final int MAP_FILE_STORE = 4;
+
+    public static final int ARCHIVE_FILE_STORE = 0;
+    public static final int MODEL_FILE_STORE = 1;
+    public static final int ANIMATION_FILE_STORE = 2;
+    public static final int MIDI_FILE_STORE = 3;
+    public static final int MAP_FILE_STORE = 4;
 
     private static final int EXPANDED_HEADER_LENGTH = 10;
     private static final int HEADER_LENGTH = 8;
@@ -28,20 +28,20 @@ public final class FileStore {
     private static final int EXPANDED_BLOCK_LENGTH = 510;
     private static final int BLOCK_LENGTH = 512;
 
-	private static final int TOTAL_BLOCK_LENGTH = HEADER_LENGTH + BLOCK_LENGTH;
-	private static final int META_BLOCK_LENGTH = 6;
+    private static final int TOTAL_BLOCK_LENGTH = HEADER_LENGTH + BLOCK_LENGTH;
+    private static final int META_BLOCK_LENGTH = 6;
 
-	private static final ByteBuffer buffer = ByteBuffer.allocate(BLOCK_LENGTH + HEADER_LENGTH);
-	
-	private final int storeId;
-	private final FileChannel dataChannel;
+    private static final ByteBuffer buffer = ByteBuffer.allocate(BLOCK_LENGTH + HEADER_LENGTH);
+
+    private final int storeId;
+    private final FileChannel dataChannel;
     private final FileChannel metaChannel;
 
-	public FileStore(int storeId, FileChannel dataChannel, FileChannel metaChannel) {
-		this.storeId = storeId;
+    public FileStore(int storeId, FileChannel dataChannel, FileChannel metaChannel) {
+        this.storeId = storeId;
         this.dataChannel = dataChannel;
         this.metaChannel = metaChannel;
-	}
+    }
 
     public int calculateChecksum(Archive updateArchive, int fileId) throws IOException {
         // you can't calculate the checksum for archives like this they don't have an associated version and crc file in the version list archive
@@ -79,32 +79,32 @@ public final class FileStore {
         return (int) checksum.getValue();
     }
 
-	public synchronized ByteBuffer readFile(int fileId) {
-		try {
+    public synchronized ByteBuffer readFile(int fileId) {
+        try {
 
             if (fileId * META_BLOCK_LENGTH + META_BLOCK_LENGTH > metaChannel.size()) {
                 return null;
             }
 
-			buffer.position(0).limit(META_BLOCK_LENGTH);
-			metaChannel.read(buffer, fileId * META_BLOCK_LENGTH);
-			buffer.flip();
+            buffer.position(0).limit(META_BLOCK_LENGTH);
+            metaChannel.read(buffer, fileId * META_BLOCK_LENGTH);
+            buffer.flip();
 
-			int size = ByteBufferUtils.readU24Int(buffer);
-			int block = ByteBufferUtils.readU24Int(buffer);
+            int size = ByteBufferUtils.readU24Int(buffer);
+            int block = ByteBufferUtils.readU24Int(buffer);
 
-			if (block <= 0 || (long) block > dataChannel.size() / 520L) {
-				return null;
-			}
+            if (block <= 0 || (long) block > dataChannel.size() / 520L) {
+                return null;
+            }
 
-			ByteBuffer fileBuffer = ByteBuffer.allocate(size);
+            ByteBuffer fileBuffer = ByteBuffer.allocate(size);
 
-			int remaining = size;
-			int chunk = 0;
+            int remaining = size;
+            int chunk = 0;
             int blockLength = fileId <= 0xFFFF ? BLOCK_LENGTH : EXPANDED_BLOCK_LENGTH;
             int headerLength = fileId <= 0xFFFF ? HEADER_LENGTH : EXPANDED_HEADER_LENGTH;
 
-            while(remaining > 0) {
+            while (remaining > 0) {
                 if (block == 0) {
                     return null;
                 }
@@ -146,57 +146,57 @@ public final class FileStore {
                 chunk++;
             }
             fileBuffer.position(0);
-			return fileBuffer;
-		} catch (IOException _ex) {
-			return null;
-		}
-	}
+            return fileBuffer;
+        } catch (IOException _ex) {
+            return null;
+        }
+    }
 
-	public synchronized boolean writeFile(int id, byte[] data) {
-		return writeFile(id, data, true) || writeFile(id, data, false);
-	}
+    public synchronized boolean writeFile(int id, byte[] data) {
+        return writeFile(id, data, true) || writeFile(id, data, false);
+    }
 
-	private synchronized boolean writeFile(int fileId, byte[] data, boolean exists) {
-		try {
+    private synchronized boolean writeFile(int fileId, byte[] data, boolean exists) {
+        try {
 
-		    ByteBuffer dataBuf = ByteBuffer.wrap(data);
+            ByteBuffer dataBuf = ByteBuffer.wrap(data);
 
-			int block;
-			
-			if (exists) {
+            int block;
 
-			    if (fileId * META_BLOCK_LENGTH + META_BLOCK_LENGTH > metaChannel.size()) {
-			        return false;
+            if (exists) {
+
+                if (fileId * META_BLOCK_LENGTH + META_BLOCK_LENGTH > metaChannel.size()) {
+                    return false;
                 }
 
                 buffer.position(0).limit(META_BLOCK_LENGTH);
-			    metaChannel.read(buffer, fileId * META_BLOCK_LENGTH);
-			    buffer.flip();
+                metaChannel.read(buffer, fileId * META_BLOCK_LENGTH);
+                buffer.flip();
 
-			    // skip size
-			    buffer.position(3);
+                // skip size
+                buffer.position(3);
 
-			    block = ByteBufferUtils.readU24Int(buffer);
+                block = ByteBufferUtils.readU24Int(buffer);
 
-				if (block <= 0 || (long) block > dataChannel.size() / TOTAL_BLOCK_LENGTH) {
-					return false;
-				}
+                if (block <= 0 || (long) block > dataChannel.size() / TOTAL_BLOCK_LENGTH) {
+                    return false;
+                }
 
-			} else {
-				block = (int) ((dataChannel.size() + TOTAL_BLOCK_LENGTH - 1) / TOTAL_BLOCK_LENGTH);
+            } else {
+                block = (int) ((dataChannel.size() + TOTAL_BLOCK_LENGTH - 1) / TOTAL_BLOCK_LENGTH);
 
-				if (block == 0) {
-					block = 1;
-				}
+                if (block == 0) {
+                    block = 1;
+                }
 
-			}
+            }
 
-			buffer.position(0);
-			ByteBufferUtils.write24Int(buffer, data.length);
-			ByteBufferUtils.write24Int(buffer, block);
-			buffer.flip();
+            buffer.position(0);
+            ByteBufferUtils.write24Int(buffer, data.length);
+            ByteBufferUtils.write24Int(buffer, block);
+            buffer.flip();
 
-			metaChannel.write(buffer, fileId * META_BLOCK_LENGTH);
+            metaChannel.write(buffer, fileId * META_BLOCK_LENGTH);
 
             int remaining = data.length;
             int chunk = 0;
@@ -276,27 +276,27 @@ public final class FileStore {
                 chunk++;
             }
 
-			return true;
-		} catch (IOException ex) {
-			return false;
-		}
-	}
+            return true;
+        } catch (IOException ex) {
+            return false;
+        }
+    }
 
-	public void close() {
-	    try {
-	        dataChannel.close();
+    public void close() {
+        try {
+            dataChannel.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         try {
-	        metaChannel.close();
+            metaChannel.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-	public int getFileCount() {
+    public int getFileCount() {
         try {
             return Math.toIntExact(metaChannel.size() / META_BLOCK_LENGTH);
         } catch (IOException e) {
@@ -305,8 +305,8 @@ public final class FileStore {
         return 0;
     }
 
-	public int getStoreId() {
-		return storeId;
-	}
+    public int getStoreId() {
+        return storeId;
+    }
 
 }

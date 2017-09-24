@@ -19,7 +19,7 @@ public final class ImageArchive {
     public static ImageArchive decode(Archive archive, int hash) {
         ImageArchive imageArchive = new ImageArchive(hash);
 
-        for (int i = 0; ;i++) {
+        for (int i = 0; ; i++) {
             try {
                 Sprite decoded = Sprite.decode(archive, hash, i);
 
