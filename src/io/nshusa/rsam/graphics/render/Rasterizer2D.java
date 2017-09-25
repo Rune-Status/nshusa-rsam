@@ -2,6 +2,7 @@ package io.nshusa.rsam.graphics.render;
 
 public class Rasterizer2D {
 
+    public static float depthBuffer[];
     public static int pixels[];
     public static int width;
     public static int height;
@@ -19,8 +20,10 @@ public class Rasterizer2D {
      * @param height The height of the drawingArea.
      * @param width  The width of the drawingArea.
      * @param pixels The array of pixels (RGBColours) in the drawingArea.
+     * @param depth  An array of fog depths.
      */
-    public static void initDrawingArea(int height, int width, int pixels[]) {
+    public static void initDrawingArea(int height, int width, int pixels[], float depth[]) {
+        depthBuffer = depth;
         Rasterizer2D.pixels = pixels;
         Rasterizer2D.width = width;
         Rasterizer2D.height = height;
@@ -123,6 +126,7 @@ public class Rasterizer2D {
         int i = width * height;
         for (int j = 0; j < i; j++) {
             pixels[j] = 0;
+            depthBuffer[j] = Float.MAX_VALUE;
         }
 
     }
@@ -152,9 +156,8 @@ public class Rasterizer2D {
         int leftOver = Rasterizer2D.width - width;
         int pixelIndex = leftX + topY * Rasterizer2D.width;
         for (int rowIndex = 0; rowIndex < height; rowIndex++) {
-            for (int columnIndex = 0; columnIndex < width; columnIndex++) {
+            for (int columnIndex = 0; columnIndex < width; columnIndex++)
                 pixels[pixelIndex++] = rgbColour;
-            }
             pixelIndex += leftOver;
         }
     }
