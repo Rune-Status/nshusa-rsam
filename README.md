@@ -70,3 +70,25 @@ if (archive.contains("obj.dat")) {
 
         }
 ```
+
+### Read Widget and fonts
+```java
+        try(IndexedFileSystem fs = IndexedFileSystem.init(Paths.get("./cache/"))) {
+            FileStore archiveStore = fs.getStore(FileStore.ARCHIVE_FILE_STORE);
+
+            Archive widgetArchive = Archive.decode(archiveStore.readFile(Archive.INTERFACE_ARCHIVE));
+            Archive graphicArchive = Archive.decode(archiveStore.readFile(Archive.MEDIA_ARCHIVE));
+            Archive fontArchive = Archive.decode(archiveStore.readFile(Archive.TITLE_ARCHIVE));
+
+            Font smallFont = new Font(fontArchive, "p11_full", false);
+            Font frameFont = new Font(fontArchive, "p12_full", false);
+            Font boldFont = new Font(fontArchive, "b12_full", false);
+            Font font2 = new Font(fontArchive, "q8_full", true);
+
+            Font[] fonts = {smallFont, frameFont, boldFont, font2};
+            Widget.load(widgetArchive, graphicArchive, fonts);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+```
