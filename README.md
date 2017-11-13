@@ -71,7 +71,7 @@ if (archive.contains("obj.dat")) {
         }
 ```
 
-### Read Widget and fonts
+### Reading Widgets and fonts
 ```java
         try(IndexedFileSystem fs = IndexedFileSystem.init(Paths.get("./cache/"))) {
             FileStore archiveStore = fs.getStore(FileStore.ARCHIVE_FILE_STORE);
@@ -87,6 +87,8 @@ if (archive.contains("obj.dat")) {
 
             Font[] fonts = {smallFont, frameFont, boldFont, font2};
             Widget.load(widgetArchive, graphicArchive, fonts);
+
+            System.out.println(String.format("There are %s widgets.", Widget.widgets.length));
 
         } catch (IOException e) {
             e.printStackTrace();
