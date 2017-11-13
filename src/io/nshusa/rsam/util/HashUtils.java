@@ -15,4 +15,15 @@ public final class HashUtils {
         return hash;
     }
 
+    public static long hashSpriteName(String name) {
+        name = name.toUpperCase();
+        long hash = 0;
+        for (int index = 0; index < name.length(); index++) {
+            hash = hash * 61 + name.charAt(index) - 32;
+            hash = hash + (hash >> 56) & 0xFFFFFFFFFFFFFFL;
+        }
+
+        return hash;
+    }
+
 }

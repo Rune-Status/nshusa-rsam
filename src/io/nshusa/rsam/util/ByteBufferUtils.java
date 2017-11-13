@@ -32,4 +32,13 @@ public final class ByteBufferUtils {
         return (buffer.getShort() & 0xFFFF) - 32768;
     }
 
+    public static String getString(ByteBuffer buffer) {
+        final StringBuilder bldr = new StringBuilder();
+        byte b;
+        while (buffer.hasRemaining() && (b = buffer.get()) != 10) {
+            bldr.append((char) b);
+        }
+        return bldr.toString();
+    }
+
 }
