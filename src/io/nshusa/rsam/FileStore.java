@@ -1,237 +1,312 @@
 package io.nshusa.rsam;
 
-import java.io.*;
+import io.nshusa.rsam.binary.Archive;
+import io.nshusa.rsam.util.ByteBufferUtils;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.util.zip.CRC32;
+import java.util.zip.Checksum;
 
 public final class FileStore {
-	
-	public static final int ARCHIVE_FILE_STORE = 0;
-	public static final int MODEL_FILE_STORE = 1;
-	public static final int ANIMATION_FILE_STORE = 2;
-	public static final int MIDI_FILE_STORE = 3;
-	public static final int MAP_FILE_STORE = 4;
-	
-	private static final byte[] buffer = new byte[520];
-	
-	private final int storeId;	
-	
-	protected final RandomAccessFile dataRaf;	
-	protected final RandomAccessFile indexRaf;
 
-	public FileStore(int storeId, RandomAccessFile data, RandomAccessFile index) {		
-		this.storeId = storeId;
-		dataRaf = data;
-		indexRaf = index;
-	}
+    private static final String[] crcFileNames = {"model_crc", "anim_crc", "midi_crc", "map_crc"};
+    private static final String[] versionFileNames = {"model_version", "anim_version", "midi_version", "map_version"};
 
-	public synchronized byte[] readFile(int fileId) {		
-		try {
-			seek(indexRaf, fileId * 6);
-			
-			for (int in = 0, read = 0; read < 6; read += in) {
-				in = indexRaf.read(buffer, read, 6 - read);
+    private final Checksum checksum = new CRC32();
 
-				if (in == -1) {
-					return null;
-				}
+    public static final int ARCHIVE_FILE_STORE = 0;
+    public static final int MODEL_FILE_STORE = 1;
+    public static final int ANIMATION_FILE_STORE = 2;
+    public static final int MIDI_FILE_STORE = 3;
+    public static final int MAP_FILE_STORE = 4;
 
-			}
+    private static final int EXPANDED_HEADER_LENGTH = 10;
+    private static final int HEADER_LENGTH = 8;
 
-			int size = ((buffer[0] & 0xff) << 16) + ((buffer[1] & 0xff) << 8) + (buffer[2] & 0xff);
-			int sector = ((buffer[3] & 0xff) << 16) + ((buffer[4] & 0xff) << 8) + (buffer[5] & 0xff);
+    private static final int EXPANDED_BLOCK_LENGTH = 510;
+    private static final int BLOCK_LENGTH = 512;
 
-			if (sector <= 0 || (long) sector > dataRaf.length() / 520L) {
-				return null;
-			}
+    private static final int TOTAL_BLOCK_LENGTH = HEADER_LENGTH + BLOCK_LENGTH;
+    private static final int META_BLOCK_LENGTH = 6;
 
-			byte temp[] = new byte[size];			
+    private static final ByteBuffer buffer = ByteBuffer.allocate(BLOCK_LENGTH + HEADER_LENGTH);
 
-			int totalRead = 0;
+    private final int storeId;
+    private final FileChannel dataChannel;
+    private final FileChannel metaChannel;
 
-			for (int part = 0; totalRead < size; part++) {
+    public FileStore(int storeId, FileChannel dataChannel, FileChannel metaChannel) {
+        this.storeId = storeId;
+        this.dataChannel = dataChannel;
+        this.metaChannel = metaChannel;
+    }
 
-				if (sector == 0) {
-					return null;
-				}
+    public int calculateChecksum(Archive updateArchive, int fileId) throws IOException {
+        // you can't calculate the checksum for archives like this they don't have an associated version and crc file in the version list archive
+        if (storeId == 0) {
+            return 0;
+        }
 
-				seek(dataRaf, sector * 520);
+        ByteBuffer versionBuf = updateArchive.readFile(versionFileNames[storeId - 1]);
 
-				int unread = size - totalRead;
+        int versionCount = versionBuf.capacity() / Short.BYTES;
 
-				if (unread > 512) {
-					unread = 512;
-				}
+        int version = 0;
 
-				for (int in = 0, read = 0; read < unread + 8; read += in) {
-					in = dataRaf.read(buffer, read, (unread + 8) - read);
+        if (fileId < versionCount) {
+            versionBuf.position(fileId * Short.BYTES);
 
-					if (in == -1) {
-						return null;
-					}
-				}
-				int currentFileId = ((buffer[0] & 0xff) << 8) + (buffer[1] & 0xff);				
-				int currentPart = ((buffer[2] & 0xff) << 8) + (buffer[3] & 0xff);
-				int nextSector = ((buffer[4] & 0xff) << 16) + ((buffer[5] & 0xff) << 8) + (buffer[6] & 0xff);
-				int currentFile = buffer[7] & 0xff;
+            version = versionBuf.getShort() & 0xFFFF;
+        }
 
-				if (currentFileId != fileId || currentPart != part || currentFile != storeId) {
-					return null;
-				}
+        // read the file
+        ByteBuffer fileBuf = readFile(fileId);
 
-				if (nextSector < 0 || (long) nextSector > dataRaf.length() / 520L) {
-					return null;
-				}
+        if (fileBuf == null) {
+            return 0;
+        }
 
-				for (int i = 0; i < unread; i++) {
-					temp[totalRead++] = buffer[i + 8];
-				}
+        // file data first then version after
+        ByteBuffer buf = ByteBuffer.allocate(fileBuf.capacity() + Short.BYTES);
+        buf.put(fileBuf);
+        buf.putShort((short) version);
 
-				sector = nextSector;
-			}
+        checksum.reset();
+        checksum.update(buf.array(), 0, buf.capacity());
 
-			return temp;
-		} catch (IOException _ex) {
-			return null;
-		}
-	}
+        return (int) checksum.getValue();
+    }
 
-	public synchronized boolean writeFile(int id, byte data[], int length) {		
-		return writeFile(id, data, length, true) ? true : writeFile(id, data, length, false);
-	}
+    public synchronized ByteBuffer readFile(int fileId) {
+        try {
 
-	private synchronized boolean writeFile(int position, byte bytes[], int length, boolean exists) {
-		try {
-			int sector;
-			
-			if (exists) {
-				seek(indexRaf, position * 6);
+            if (fileId * META_BLOCK_LENGTH + META_BLOCK_LENGTH > metaChannel.size()) {
+                return null;
+            }
 
-				for (int in = 0, read = 0; read < 6; read += in) {
-					in = indexRaf.read(buffer, read, 6 - read);
+            buffer.position(0).limit(META_BLOCK_LENGTH);
+            metaChannel.read(buffer, fileId * META_BLOCK_LENGTH);
+            buffer.flip();
 
-					if (in == -1) {
-						return false;
-					}
+            int size = ByteBufferUtils.readU24Int(buffer);
+            int block = ByteBufferUtils.readU24Int(buffer);
 
-				}
-				sector = ((buffer[3] & 0xff) << 16) + ((buffer[4] & 0xff) << 8) + (buffer[5] & 0xff);
+            if (block <= 0 || (long) block > dataChannel.size() / 520L) {
+                return null;
+            }
 
-				if (sector <= 0 || (long) sector > dataRaf.length() / 520L) {
-					return false;
-				}
+            ByteBuffer fileBuffer = ByteBuffer.allocate(size);
 
-			} else {
-				sector = (int) ((dataRaf.length() + 519L) / 520L);
-				if (sector == 0) {
-					sector = 1;
-				}
-			}
-			buffer[0] = (byte) (length >> 16);
-			buffer[1] = (byte) (length >> 8);
-			buffer[2] = (byte) length;
-			buffer[3] = (byte) (sector >> 16);
-			buffer[4] = (byte) (sector >> 8);
-			buffer[5] = (byte) sector;
-			seek(indexRaf, position * 6);
-			indexRaf.write(buffer, 0, 6);
+            int remaining = size;
+            int chunk = 0;
+            int blockLength = fileId <= 0xFFFF ? BLOCK_LENGTH : EXPANDED_BLOCK_LENGTH;
+            int headerLength = fileId <= 0xFFFF ? HEADER_LENGTH : EXPANDED_HEADER_LENGTH;
 
-			for (int part = 0, written = 0; written < length; part++) {
+            while (remaining > 0) {
+                if (block == 0) {
+                    return null;
+                }
 
-				int nextSector = 0;
+                int blockSize = remaining > blockLength ? blockLength : remaining;
+                buffer.position(0).limit(blockSize + headerLength);
+                dataChannel.read(buffer, block * TOTAL_BLOCK_LENGTH);
+                buffer.flip();
 
-				if (exists) {
-					seek(dataRaf, sector * 520);
+                int currentFile, currentChunk, nextBlock, currentIndex;
 
-					int read = 0;
+                if (fileId <= 65535) {
+                    currentFile = buffer.getShort() & 0xFFFF;
+                    currentChunk = buffer.getShort() & 0xFFFF;
+                    nextBlock = ByteBufferUtils.readU24Int(buffer);
+                    currentIndex = buffer.get() & 0xFF;
+                } else {
+                    currentFile = buffer.getInt();
+                    currentChunk = buffer.getShort() & 0xFFFF;
+                    nextBlock = ByteBufferUtils.readU24Int(buffer);
+                    currentIndex = buffer.get() & 0xFF;
+                }
 
-					for (int in = 0; read < 8; read += in) {
+                if (fileId != currentFile || chunk != currentChunk || (storeId + 1) != currentIndex) {
+                    return null;
+                }
+                if (nextBlock < 0 || nextBlock > dataChannel.size() / TOTAL_BLOCK_LENGTH) {
+                    return null;
+                }
 
-						in = dataRaf.read(buffer, read, 8 - read);
+                int rem = buffer.remaining();
 
-						if (in == -1) {
-							break;
-						}
-					}
+                for (int i = 0; i < rem; i++) {
+                    fileBuffer.put(buffer.get());
+                }
 
-					if (read == 8) {
-						int currentIndex = ((buffer[0] & 0xff) << 8) + (buffer[1] & 0xff);
-						int currentPart = ((buffer[2] & 0xff) << 8) + (buffer[3] & 0xff);
-						nextSector = ((buffer[4] & 0xff) << 16) + ((buffer[5] & 0xff) << 8) + (buffer[6] & 0xff);
-						int currentFile = buffer[7] & 0xff;
+                remaining -= blockSize;
+                block = nextBlock;
+                chunk++;
+            }
+            fileBuffer.position(0);
+            return fileBuffer;
+        } catch (IOException _ex) {
+            return null;
+        }
+    }
 
-						if (currentIndex != position || currentPart != part || currentFile != storeId) {
-							return false;
-						}
+    public synchronized boolean writeFile(int id, byte[] data) {
+        return writeFile(id, data, true) || writeFile(id, data, false);
+    }
 
-						if (nextSector < 0 || (long) nextSector > dataRaf.length() / 520L) {
-							return false;
-						}
-					}
-				}
-				if (nextSector == 0) {
-					exists = false;
-					nextSector = (int) ((dataRaf.length() + 519L) / 520L);
+    private synchronized boolean writeFile(int fileId, byte[] data, boolean exists) {
+        try {
 
-					if (nextSector == 0) {
-						nextSector++;
-					}
+            ByteBuffer dataBuf = ByteBuffer.wrap(data);
 
-					if (nextSector == sector) {
-						nextSector++;
-					}
+            int block;
 
-				}
+            if (exists) {
 
-				if (length - written <= 512) {
-					nextSector = 0;
-				}
+                if (fileId * META_BLOCK_LENGTH + META_BLOCK_LENGTH > metaChannel.size()) {
+                    return false;
+                }
 
-				buffer[0] = (byte) (position >> 8);
-				buffer[1] = (byte) position;
-				buffer[2] = (byte) (part >> 8);
-				buffer[3] = (byte) part;
-				buffer[4] = (byte) (nextSector >> 16);
-				buffer[5] = (byte) (nextSector >> 8);
-				buffer[6] = (byte) nextSector;
-				buffer[7] = (byte) storeId;
-				seek(dataRaf, sector * 520);
-				dataRaf.write(buffer, 0, 8);
+                buffer.position(0).limit(META_BLOCK_LENGTH);
+                metaChannel.read(buffer, fileId * META_BLOCK_LENGTH);
+                buffer.flip();
 
-				int unwritten = length - written;
+                // skip size
+                buffer.position(3);
 
-				if (unwritten > 512) {
-					unwritten = 512;
-				}
+                block = ByteBufferUtils.readU24Int(buffer);
 
-				dataRaf.write(bytes, written, unwritten);
-				written += unwritten;
-				sector = nextSector;
-			}
+                if (block <= 0 || (long) block > dataChannel.size() / TOTAL_BLOCK_LENGTH) {
+                    return false;
+                }
 
-			return true;
-		} catch (IOException ex) {
-			return false;
-		}
-	}
+            } else {
+                block = (int) ((dataChannel.size() + TOTAL_BLOCK_LENGTH - 1) / TOTAL_BLOCK_LENGTH);
 
-	private synchronized void seek(RandomAccessFile file, int position) throws IOException {		
-		try {
-			file.seek(position);			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public int getFileCount() {
-		try {
-			return Math.toIntExact(indexRaf.length() / 6);
-		} catch (Exception ex) {
-			
-		}		
-		return 0;		
-	}
+                if (block == 0) {
+                    block = 1;
+                }
 
-	public int getStoreId() {
-		return storeId;
-	}
+            }
+
+            buffer.position(0);
+            ByteBufferUtils.write24Int(buffer, data.length);
+            ByteBufferUtils.write24Int(buffer, block);
+            buffer.flip();
+
+            metaChannel.write(buffer, fileId * META_BLOCK_LENGTH);
+
+            int remaining = data.length;
+            int chunk = 0;
+            int blockLength = fileId <= 0xFFFF ? BLOCK_LENGTH : EXPANDED_BLOCK_LENGTH;
+            int headerLength = fileId <= 0xFFFF ? HEADER_LENGTH : EXPANDED_HEADER_LENGTH;
+            while (remaining > 0) {
+                int nextBlock = 0;
+
+                if (exists) {
+                    buffer.position(0).limit(headerLength);
+                    dataChannel.read(buffer, block * TOTAL_BLOCK_LENGTH);
+                    buffer.flip();
+
+                    int currentFile, currentChunk, currentIndex;
+                    if (fileId <= 0xFFFF) {
+                        currentFile = buffer.getShort() & 0xFFFF;
+                        currentChunk = buffer.getShort() & 0xFFFF;
+                        nextBlock = ByteBufferUtils.readU24Int(buffer);
+                        currentIndex = buffer.get() & 0xFF;
+                    } else {
+                        currentFile = buffer.getInt();
+                        currentChunk = buffer.getShort() & 0xFFFF;
+                        nextBlock = ByteBufferUtils.readU24Int(buffer);
+                        currentIndex = buffer.get() & 0xFF;
+                    }
+
+                    if (fileId != currentFile || chunk != currentChunk || (storeId + 1) != currentIndex) {
+                        return false;
+                    }
+
+                    if (nextBlock < 0 || nextBlock > dataChannel.size() / TOTAL_BLOCK_LENGTH) {
+                        return false;
+                    }
+
+                }
+
+                if (nextBlock == 0) {
+                    exists = false;
+                    nextBlock = (int) ((dataChannel.size() + TOTAL_BLOCK_LENGTH - 1) / TOTAL_BLOCK_LENGTH);
+
+                    if (nextBlock == 0) {
+                        nextBlock = 1;
+                    }
+
+                    if (nextBlock == block) {
+                        nextBlock++;
+                    }
+
+                }
+
+                if (remaining <= blockLength) {
+                    nextBlock = 0;
+                }
+
+                buffer.position(0).limit(TOTAL_BLOCK_LENGTH);
+
+                if (fileId <= 0xFFFF) {
+                    buffer.putShort((short) fileId);
+                    buffer.putShort((short) chunk);
+                    ByteBufferUtils.write24Int(buffer, nextBlock);
+                    buffer.put((byte) (storeId + 1));
+                } else {
+                    buffer.putInt(fileId);
+                    buffer.putShort((short) chunk);
+                    ByteBufferUtils.write24Int(buffer, nextBlock);
+                    buffer.put((byte) (storeId + 1));
+                }
+
+                int blockSize = remaining > blockLength ? blockLength : remaining;
+                dataBuf.limit(dataBuf.position() + blockSize);
+                buffer.put(dataBuf);
+                buffer.flip();
+
+                dataChannel.write(buffer, block * TOTAL_BLOCK_LENGTH);
+                remaining -= blockSize;
+                block = nextBlock;
+                chunk++;
+            }
+
+            return true;
+        } catch (IOException ex) {
+            return false;
+        }
+    }
+
+    public void close() {
+        try {
+            dataChannel.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            metaChannel.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public int getFileCount() {
+        try {
+            return Math.toIntExact(metaChannel.size() / META_BLOCK_LENGTH);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public int getStoreId() {
+        return storeId;
+    }
 
 }
