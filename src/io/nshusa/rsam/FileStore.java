@@ -286,6 +286,7 @@ public final class FileStore {
 
     public void close() {
         try {
+            dataChannel.close();
             metaChannel.close();
         } catch (IOException e) {
             e.printStackTrace();

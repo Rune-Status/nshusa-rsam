@@ -14,8 +14,6 @@ public final class IndexedFileSystem implements Closeable {
 
     private Path root;
 
-    private FileChannel dataChannel;
-
     private final FileStore[] fileStores = new FileStore[255];
 
     private boolean loaded;
@@ -26,26 +24,6 @@ public final class IndexedFileSystem implements Closeable {
 
     public static IndexedFileSystem init(Path root) {
         return new IndexedFileSystem(root);
-    }
-
-    public void initialize(int count) throws IOException {
-        if (count <= 0) {
-            return;
-        }
-
-        final Path dataPath = root.resolve("main_file_cache.dat");
-
-        if (!Files.exists(dataPath)) {
-            Files.createFile(dataPath);
-        }
-
-        for (int i = 0; i < count; i++) {
-            Path indexPath = root.resolve("main_file_cache.idx" + i);
-
-            if (!Files.exists(indexPath)) {
-                Files.createFile(indexPath);
-            }
-        }
     }
 
     public boolean load() {
@@ -62,12 +40,10 @@ public final class IndexedFileSystem implements Closeable {
                 Files.createFile(dataPath);
             }
 
-            dataChannel = new RandomAccessFile(dataPath.toFile(), "rw").getChannel();
-
             for (int i = 0; i < 255; i++) {
                 Path indexPath = root.resolve("main_file_cache.idx" + i);
                 if (Files.exists(indexPath)) {
-                    fileStores[i] = new FileStore(i, dataChannel, new RandomAccessFile(indexPath.toFile(), "rw").getChannel());
+                    fileStores[i] = new FileStore(i, new RandomAccessFile(dataPath.toFile(), "rw").getChannel(), new RandomAccessFile(indexPath.toFile(), "rw").getChannel());
                 }
             }
             loaded = true;
@@ -153,7 +129,7 @@ public final class IndexedFileSystem implements Closeable {
 
             }
 
-            close();
+            reset();
 
             Files.deleteIfExists(root.resolve("main_file_cache.dat"));
 
@@ -193,7 +169,6 @@ public final class IndexedFileSystem implements Closeable {
 
     public ByteBuffer readFile(int storeId, int fileId) {
         FileStore store = getStore(storeId);
-
         return store.readFile(fileId);
     }
 
@@ -202,15 +177,7 @@ public final class IndexedFileSystem implements Closeable {
     }
 
     void setRoot(Path root) {
-        try {
-            close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        }
-
-        Arrays.fill(fileStores, null);
-
+        reset();
         this.root = root;
     }
 
@@ -242,23 +209,13 @@ public final class IndexedFileSystem implements Closeable {
 
     @Override
     public void close() throws IOException {
-        for (FileStore fileStore : fileStores) {
+        for (final FileStore fileStore : fileStores) {
             if (fileStore == null) {
                 continue;
             }
 
-            synchronized (fileStore) {
-                fileStore.close();
-            }
-
+            fileStore.close();
         }
-
-        if (dataChannel != null) {
-            synchronized (dataChannel) {
-                dataChannel.close();
-            }
-        }
-
     }
 
 }
