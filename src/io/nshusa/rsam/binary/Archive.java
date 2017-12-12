@@ -1,7 +1,7 @@
 package io.nshusa.rsam.binary;
 
 import io.nshusa.rsam.util.ByteBufferUtils;
-import io.nshusa.rsam.util.CompressionUtil;
+import io.nshusa.rsam.util.CompressionUtils;
 import io.nshusa.rsam.util.HashUtils;
 
 import java.io.FileNotFoundException;
@@ -74,7 +74,7 @@ public final class Archive {
             final byte[] compressed = new byte[compressedLength];
             final byte[] decompressed = new byte[uncompressedLength];
             buffer.get(compressed);
-            CompressionUtil.debzip2(compressed, decompressed);
+            CompressionUtils.debzip2(compressed, decompressed);
             buffer = ByteBuffer.wrap(decompressed);
             extracted = true;
         }
@@ -141,7 +141,7 @@ public final class Archive {
             data = buffer.array();
         } else {
             byte[] unzipped = buffer.array();
-            byte[] zipped = CompressionUtil.bzip2(unzipped);
+            byte[] zipped = CompressionUtils.bzip2(unzipped);
             if (unzipped.length == zipped.length) {
                 throw new RuntimeException("error zipped size matches original");
             }
@@ -205,7 +205,7 @@ public final class Archive {
 
             if (!extracted) {
                 byte[] decompressed = new byte[entry.getUncompressedSize()];
-                CompressionUtil.debzip2(entry.getData(), decompressed);
+                CompressionUtils.debzip2(entry.getData(), decompressed);
                 return ByteBuffer.wrap(decompressed);
             } else {
                 return ByteBuffer.wrap(entry.getData());
@@ -226,7 +226,7 @@ public final class Archive {
 
         ArchiveEntry entry;
         if (!extracted) {
-            byte[] compressed = CompressionUtil.bzip2(data);
+            byte[] compressed = CompressionUtils.bzip2(data);
             entry = new Archive.ArchiveEntry(newHash, data.length, compressed.length, compressed);
         } else {
             entry = new Archive.ArchiveEntry(newHash, data.length, data.length, data);
@@ -247,7 +247,7 @@ public final class Archive {
 
         ArchiveEntry entry;
         if (!extracted) {
-            byte[] compressed = CompressionUtil.bzip2(data);
+            byte[] compressed = CompressionUtils.bzip2(data);
             entry = new Archive.ArchiveEntry(hash, data.length, compressed.length, compressed);
         } else {
             entry = new Archive.ArchiveEntry(hash, data.length, data.length, data);
