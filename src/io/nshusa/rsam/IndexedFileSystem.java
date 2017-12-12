@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -12,6 +13,8 @@ import java.util.*;
 public final class IndexedFileSystem implements Closeable {
 
     private Path root;
+
+    private FileChannel dataChannel;
 
     private final FileStore[] fileStores = new FileStore[255];
 
@@ -47,6 +50,8 @@ public final class IndexedFileSystem implements Closeable {
 
     public boolean load() {
         try {
+            reset();
+
             if (!Files.exists(root)) {
                 Files.createDirectory(root);
             }
@@ -57,11 +62,12 @@ public final class IndexedFileSystem implements Closeable {
                 Files.createFile(dataPath);
             }
 
-            RandomAccessFile dataRaf = new RandomAccessFile(dataPath.toFile(), "rw");
+            dataChannel = new RandomAccessFile(dataPath.toFile(), "rw").getChannel();
+
             for (int i = 0; i < 255; i++) {
                 Path indexPath = root.resolve("main_file_cache.idx" + i);
                 if (Files.exists(indexPath)) {
-                    fileStores[i] = new FileStore(i, dataRaf.getChannel(), new RandomAccessFile(indexPath.toFile(), "rw").getChannel());
+                    fileStores[i] = new FileStore(i, dataChannel, new RandomAccessFile(indexPath.toFile(), "rw").getChannel());
                 }
             }
             loaded = true;
@@ -246,6 +252,13 @@ public final class IndexedFileSystem implements Closeable {
             }
 
         }
+
+        if (dataChannel != null) {
+            synchronized (dataChannel) {
+                dataChannel.close();
+            }
+        }
+
     }
 
 }

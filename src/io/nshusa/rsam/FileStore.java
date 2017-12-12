@@ -34,7 +34,9 @@ public final class FileStore {
     private static final ByteBuffer buffer = ByteBuffer.allocate(BLOCK_LENGTH + HEADER_LENGTH);
 
     private final int storeId;
+
     private final FileChannel dataChannel;
+
     private final FileChannel metaChannel;
 
     public FileStore(int storeId, FileChannel dataChannel, FileChannel metaChannel) {
@@ -284,12 +286,6 @@ public final class FileStore {
 
     public void close() {
         try {
-            dataChannel.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        try {
             metaChannel.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -297,6 +293,10 @@ public final class FileStore {
     }
 
     public int getFileCount() {
+        if (!metaChannel.isOpen()) {
+            return 0;
+        }
+
         try {
             return Math.toIntExact(metaChannel.size() / META_BLOCK_LENGTH);
         } catch (IOException e) {
