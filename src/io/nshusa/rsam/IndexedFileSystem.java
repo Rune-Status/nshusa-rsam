@@ -21,7 +21,7 @@ public final class IndexedFileSystem implements Closeable {
         this.root = root;
     }
 
-    public static IndexedFileSystem init(Path root) throws IOException {
+    public static IndexedFileSystem init(Path root) {
         return new IndexedFileSystem(root);
     }
 
