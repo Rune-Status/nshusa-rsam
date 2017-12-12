@@ -54,7 +54,7 @@ public final class IndexedFileSystem implements Closeable {
             final Path dataPath = root.resolve("main_file_cache.dat");
 
             if (!Files.exists(dataPath)) {
-                return false;
+                Files.createFile(dataPath);
             }
 
             RandomAccessFile dataRaf = new RandomAccessFile(dataPath.toFile(), "rw");
@@ -99,8 +99,28 @@ public final class IndexedFileSystem implements Closeable {
         return true;
     }
 
+    public boolean removeStore(int storeId) {
+        if (storeId < 0 || storeId >= fileStores.length) {
+            return false;
+        }
+
+        reset();
+
+        try {
+            Files.deleteIfExists(root.resolve("main_file_cache.idx" + storeId));
+            return defragment();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return false;
+    }
+
     public boolean defragment() {
         try {
+            if (!isLoaded()) {
+                load();
+            }
+
             File[] files = root.toFile().listFiles();
 
             if (files == null) {
@@ -109,14 +129,14 @@ public final class IndexedFileSystem implements Closeable {
 
             Map<Integer, List<ByteBuffer>> map = new LinkedHashMap<>();
 
-            for (int store = 0; store < getStoreCount(); store++) {
+            for (int store = 0; store < 255; store++) {
 
                 FileStore fileStore = getStore(store);
                 if (fileStore == null) {
                     continue;
                 }
 
-                map.put(store, new ArrayList<>());
+                map.put(fileStore.getStoreId(), new ArrayList<>());
 
                 for (int file = 0; file < fileStore.getFileCount(); file++) {
                     ByteBuffer buffer = fileStore.readFile(file);
@@ -129,15 +149,11 @@ public final class IndexedFileSystem implements Closeable {
 
             close();
 
-            for (File f : files) {
-                if (f.isDirectory() || !f.getName().contains("main_file_cache")) {
-                    continue;
-                }
+            Files.deleteIfExists(root.resolve("main_file_cache.dat"));
 
-                f.delete();
+            for (int i = 0; i < fileStores.length; i++) {
+                Files.deleteIfExists(root.resolve("main_file.cache.idx" + i));
             }
-
-            initialize(map.size());
 
             load();
 
@@ -206,6 +222,16 @@ public final class IndexedFileSystem implements Closeable {
 
     public boolean isLoaded() {
         return loaded;
+    }
+
+    public void reset() {
+        try {
+            close();
+            loaded = false;
+            Arrays.fill(fileStores, null);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     @Override
