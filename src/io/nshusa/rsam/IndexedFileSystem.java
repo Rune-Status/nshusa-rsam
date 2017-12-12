@@ -28,8 +28,6 @@ public final class IndexedFileSystem implements Closeable {
 
     public boolean load() {
         try {
-            reset();
-
             if (!Files.exists(root)) {
                 Files.createDirectory(root);
             }
@@ -37,7 +35,7 @@ public final class IndexedFileSystem implements Closeable {
             final Path dataPath = root.resolve("main_file_cache.dat");
 
             if (!Files.exists(dataPath)) {
-                Files.createFile(dataPath);
+                return false;
             }
 
             for (int i = 0; i < 255; i++) {
@@ -74,10 +72,7 @@ public final class IndexedFileSystem implements Closeable {
         if (!Files.exists(path)) {
             Files.createFile(path);
         }
-
-        final RandomAccessFile dataRaf = new RandomAccessFile(dataPath.toFile(), "rw");
-
-        fileStores[storeId] = new FileStore(storeId + 1, dataRaf.getChannel(), new RandomAccessFile(path.toFile(), "rw").getChannel());
+        fileStores[storeId] = new FileStore(storeId + 1, new RandomAccessFile(dataPath.toFile(), "rw").getChannel(), new RandomAccessFile(path.toFile(), "rw").getChannel());
         return true;
     }
 
@@ -90,7 +85,7 @@ public final class IndexedFileSystem implements Closeable {
 
         try {
             Files.deleteIfExists(root.resolve("main_file_cache.idx" + storeId));
-            return defragment();
+            return true;
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -100,7 +95,7 @@ public final class IndexedFileSystem implements Closeable {
     public boolean defragment() {
         try {
             if (!isLoaded()) {
-                load();
+                return false;
             }
 
             File[] files = root.toFile().listFiles();
