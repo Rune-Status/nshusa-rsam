@@ -150,6 +150,7 @@ public final class FileStore {
             fileBuffer.position(0);
             return fileBuffer;
         } catch (IOException _ex) {
+            _ex.printStackTrace();
             return null;
         }
     }

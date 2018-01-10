@@ -119,7 +119,7 @@ public final class Sprite {
     }
 
     public static Sprite decode(Archive archive, String name, int id) throws IOException {
-        return decode(archive, HashUtils.nameToHash(name), id);
+        return decode(archive, HashUtils.nameToHash(name.contains(".dat") ? name : name + ".dat"), id);
     }
 
     public BufferedImage toBufferedImage() {

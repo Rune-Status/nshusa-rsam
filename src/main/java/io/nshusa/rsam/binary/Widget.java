@@ -29,7 +29,7 @@ public class Widget {
 
     public static Widget[] widgets;
     private static Map<Integer, Model> models = new HashMap<>();
-    private static Map<Long, Sprite> spriteCache = new HashMap<>();
+    public static Map<Long, Sprite> spriteCache = new HashMap<>();
 
     public static void clearModels(int id, int type, Model model) {
         models.clear();
