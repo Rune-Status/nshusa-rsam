@@ -1,6 +1,7 @@
 package io.nshusa.rsam.binary.sprite;
 
 import io.nshusa.rsam.binary.Archive;
+import io.nshusa.rsam.graphics.render.Raster;
 import io.nshusa.rsam.util.ByteBufferUtils;
 import io.nshusa.rsam.util.HashUtils;
 
@@ -120,6 +121,100 @@ public final class Sprite {
 
     public static Sprite decode(Archive archive, String name, int id) throws IOException {
         return decode(archive, HashUtils.nameToHash(name.contains(".dat") ? name : name + ".dat"), id);
+    }
+
+    public void drawSprite(int x, int y) {
+        x += offsetX;
+        y += offsetY;
+        int rasterClip = x + y * Raster.width;
+        int imageClip = 0;
+        int height = this.height;
+        int width = this.width;
+        int rasterOffset = Raster.width - width;
+        int imageOffset = 0;
+
+        if (y < Raster.getClipBottom()) {
+            int dy = Raster.getClipBottom() - y;
+            height -= dy;
+            y = Raster.getClipBottom();
+            imageClip += dy * width;
+            rasterClip += dy * Raster.width;
+        }
+
+        if (y + height > Raster.getClipTop()) {
+            height -= y + height - Raster.getClipTop();
+        }
+
+        if (x < Raster.getClipLeft()) {
+            int dx = Raster.getClipLeft() - x;
+            width -= dx;
+            x = Raster.getClipLeft();
+            imageClip += dx;
+            rasterClip += dx;
+            imageOffset += dx;
+            rasterOffset += dx;
+        }
+
+        if (x + width > Raster.getClipRight()) {
+            int dx = x + width - Raster.getClipRight();
+            width -= dx;
+            imageOffset += dx;
+            rasterOffset += dx;
+        }
+
+        if (width > 0 && height > 0) {
+            draw(Raster.raster, pixels, 0, imageClip, rasterClip, width, height, rasterOffset, imageOffset);
+        }
+    }
+
+    private void draw(int raster[], int[] image, int colour, int sourceIndex, int destIndex, int width, int height, int destStep,
+                      int sourceStep) {
+        int minX = -(width >> 2);
+        width = -(width & 3);
+
+        for (int y = -height; y < 0; y++) {
+            for (int x = minX; x < 0; x++) {
+                colour = image[sourceIndex++];
+                if (colour != 0) {
+                    raster[destIndex++] = colour;
+                } else {
+                    destIndex++;
+                }
+                colour = image[sourceIndex++];
+
+                if (colour != 0) {
+                    raster[destIndex++] = colour;
+                } else {
+                    destIndex++;
+                }
+                colour = image[sourceIndex++];
+
+                if (colour != 0) {
+                    raster[destIndex++] = colour;
+                } else {
+                    destIndex++;
+                }
+                colour = image[sourceIndex++];
+
+                if (colour != 0) {
+                    raster[destIndex++] = colour;
+                } else {
+                    destIndex++;
+                }
+            }
+
+            for (int k2 = width; k2 < 0; k2++) {
+                colour = image[sourceIndex++];
+                if (colour != 0) {
+                    raster[destIndex++] = colour;
+                } else {
+                    destIndex++;
+                }
+            }
+
+            destIndex += destStep;
+            sourceIndex += sourceStep;
+        }
     }
 
     public BufferedImage toBufferedImage() {
