@@ -13,12 +13,19 @@ public final class Font extends Raster {
     private int[] glyphSpacings = new int[256];
     private int[] glyphWidths = new int[256];
     private int[] horizontalOffsets = new int[256];
+    private int[] verticalOffsets = new int[256];
+
     private Random random = new Random();
     private boolean strikethrough;
-    private int[] verticalOffsets = new int[256];
+
     private int verticalSpace;
 
-    public Font(Archive archive, String name, boolean wideSpace) throws IOException {
+    private Font() {
+
+    }
+
+    public static Font decode(Archive archive, String name, boolean wideSpace) throws IOException {
+        Font font = new Font();
         ByteBuffer data = archive.readFile(name + ".dat");
         ByteBuffer meta = archive.readFile("index.dat");
         meta.position((data.getShort() & 0xFFFF) + 4);
@@ -30,54 +37,55 @@ public final class Font extends Raster {
         }
 
         for (int character = 0; character < 256; character++) {
-            horizontalOffsets[character] = meta.get() & 0xFF;
-            verticalOffsets[character] = meta.get() & 0xFF;
-            int width = glyphWidths[character] = meta.getShort() & 0xFFFF;
-            int height = glyphHeights[character] = meta.getShort() & 0xFFFF;
+            font.horizontalOffsets[character] = meta.get() & 0xFF;
+            font.verticalOffsets[character] = meta.get() & 0xFF;
+            int width = font.glyphWidths[character] = meta.getShort() & 0xFFFF;
+            int height = font.glyphHeights[character] = meta.getShort() & 0xFFFF;
             int format = meta.get() & 0xFF;
             int pixels = width * height;
-            glyphs[character] = new byte[pixels];
+            font.glyphs[character] = new byte[pixels];
 
             if (format == 0) {
                 for (int pixel = 0; pixel < pixels; pixel++) {
-                    glyphs[character][pixel] = data.get();
+                    font.glyphs[character][pixel] = data.get();
                 }
             } else if (format == 1) {
                 for (int x = 0; x < width; x++) {
                     for (int y = 0; y < height; y++) {
-                        glyphs[character][x + y * width] = data.get();
+                        font.glyphs[character][x + y * width] = data.get();
                     }
                 }
             }
 
-            if (height > verticalSpace && character < 128) {
-                verticalSpace = height;
+            if (height > font.verticalSpace && character < 128) {
+                font.verticalSpace = height;
             }
 
-            horizontalOffsets[character] = 1;
-            glyphSpacings[character] = width + 2;
+            font.horizontalOffsets[character] = 1;
+            font.glyphSpacings[character] = width + 2;
             int filledCount = 0;
 
             for (int y = height / 7; y < height; y++) {
-                filledCount += glyphs[character][y * width];
+                filledCount += font.glyphs[character][y * width];
             }
 
             if (filledCount <= height / 7) {
-                glyphSpacings[character]--;
-                horizontalOffsets[character] = 0;
+                font.glyphSpacings[character]--;
+                font.horizontalOffsets[character] = 0;
             }
             filledCount = 0;
 
             for (int y = height / 7; y < height; y++) {
-                filledCount += glyphs[character][width - 1 + y * width];
+                filledCount += font.glyphs[character][width - 1 + y * width];
             }
 
             if (filledCount <= height / 7) {
-                glyphSpacings[character]--;
+                font.glyphSpacings[character]--;
             }
         }
 
-        glyphSpacings[' '] = wideSpace ? glyphSpacings['I'] : glyphSpacings['i'];
+        font.glyphSpacings[' '] = wideSpace ? font.glyphSpacings['I'] : font.glyphSpacings['i'];
+        return font;
     }
 
     public int getColouredTextWidth(String text) {
@@ -146,7 +154,7 @@ public final class Font extends Raster {
         return strikethrough;
     }
 
-    public void render(int x, int y, String text, int colour) {
+    public void render(String text, int x, int y, int colour) {
         if (text == null) {
             return;
         }
@@ -167,11 +175,11 @@ public final class Font extends Raster {
     }
 
     public void renderCentre(int x, int y, String text, int colour) {
-        render(x - getTextWidth(text) / 2, y, text, colour);
+        render(text, x - getTextWidth(text) / 2, y, colour);
     }
 
     public void renderLeft(int x, int y, String text, int colour) {
-        render(x - getTextWidth(text), y, text, colour);
+        render(text, x - getTextWidth(text), y, colour);
     }
 
     public void renderRandom(String text, int x, int y, int colour, boolean shadow, int seed) {

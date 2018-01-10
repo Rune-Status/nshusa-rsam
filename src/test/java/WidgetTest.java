@@ -26,10 +26,10 @@ public class WidgetTest {
             Archive graphicArchive = Archive.decode(archiveStore.readFile(Archive.MEDIA_ARCHIVE));
             Archive fontArchive = Archive.decode(archiveStore.readFile(Archive.TITLE_ARCHIVE));
 
-            Font smallFont = new Font(fontArchive, "p11_full", false);
-            Font frameFont = new Font(fontArchive, "p12_full", false);
-            Font boldFont = new Font(fontArchive, "b12_full", false);
-            Font font2 = new Font(fontArchive, "q8_full", true);
+            Font smallFont = Font.decode(fontArchive, "p11_full", false);
+            Font frameFont = Font.decode(fontArchive, "p12_full", false);
+            Font boldFont = Font.decode(fontArchive, "b12_full", false);
+            Font font2 =  Font.decode(fontArchive, "q8_full", true);
 
             Font[] fonts = {smallFont, frameFont, boldFont, font2};
             Widget.decode(widgetArchive, graphicArchive, fonts);
