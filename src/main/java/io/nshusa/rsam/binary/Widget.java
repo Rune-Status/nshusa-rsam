@@ -45,6 +45,24 @@ public class Widget {
         }
     }
 
+    public Widget() {
+        this.id = -1;
+    }
+
+    public Widget(int id) {
+        this.id = id;
+
+        if (id < 0 || id >= widgets.length) {
+            throw new IllegalArgumentException(String.format("widget=%d must be between 0 and %d", id, widgets.length));
+        }
+
+        if (widgets[id] != null) {
+            System.out.println(String.format("overriding widget: %d", id));
+        }
+
+        widgets[id] = this;
+    }
+
     public static void decode(Archive interfaces, Archive graphics, Font[] fonts) throws IOException {
         ByteBuffer buffer = interfaces.readFile("data");
         widgets = new Widget[buffer.getShort() & 0xFFFF];
@@ -58,8 +76,7 @@ public class Widget {
                 id = buffer.getShort() & 0xFFFF;
             }
 
-            Widget widget = widgets[id] = new Widget();
-            widget.id = id;
+            Widget widget = new Widget(id);
             widget.parent = parent;
             widget.group = buffer.get() & 0xFF;
             widget.optionType = buffer.get() & 0xFF;

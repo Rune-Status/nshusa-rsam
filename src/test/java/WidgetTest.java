@@ -3,8 +3,6 @@ import io.nshusa.rsam.IndexedFileSystem;
 import io.nshusa.rsam.binary.Archive;
 import io.nshusa.rsam.binary.Font;
 import io.nshusa.rsam.binary.Widget;
-import io.nshusa.rsam.binary.sprite.Sprite;
-import io.nshusa.rsam.graphics.render.Raster;
 import org.junit.Test;
 
 import javax.imageio.ImageIO;
@@ -12,7 +10,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.Optional;
 
 public class WidgetTest {
 
