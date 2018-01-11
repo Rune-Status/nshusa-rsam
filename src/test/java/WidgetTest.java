@@ -34,16 +34,20 @@ public class WidgetTest {
             Font[] fonts = {smallFont, frameFont, boldFont, font2};
             Widget.decode(widgetArchive, graphicArchive, fonts);
 
-            Optional<BufferedImage> result = Widget.toBufferedImage(5292);
-
-            if (result.isPresent()) {
-                BufferedImage bimage = result.get();
-                ImageIO.write(bimage, "png", new File("5292.png"));
-            }
+            exportWidget(1554);
 
             System.out.println(String.format("There are %s widgets.", Widget.count()));
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void exportWidget(int id) throws IOException {
+        Optional<Widget> result = Widget.lookup(id);
+
+        if (result.isPresent()) {
+            BufferedImage bimage = result.get().toBufferedImage();
+            ImageIO.write(bimage, "png", new File(id + ".png"));
         }
     }
 

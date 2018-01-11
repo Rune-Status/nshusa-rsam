@@ -420,19 +420,21 @@ public class Widget {
         return Optional.ofNullable(widgets[id]);
     }
 
-    public static Optional<BufferedImage> toBufferedImage(int id) {
-        Optional<Widget> result = Widget.lookup(id);
-
-        if (!result.isPresent()) {
-            return Optional.empty();
-        }
-
-        Widget widget = result.get();
-
-        Raster.init(widget.height, widget.width, new int[widget.width * widget.height]);
+    public BufferedImage toBufferedImage() {
+        Raster.init(this.height, this.width, new int[this.width * this.height]);
         Raster.reset();
 
-        Widget.draw(widget, 0, 0, 0);
+        if (group == TYPE_CONTAINER) {
+            Widget.draw(this, 0, 0, 0);
+        } else if (group == TYPE_SPRITE) {
+            if (defaultSprite != null) {
+                defaultSprite.drawSprite(0, 0);
+            }
+        } else if (group == TYPE_TEXT) {
+            if (font != null) {
+                font.render(defaultText, 0, 0, this.defaultColour);
+            }
+        }
 
         final int[] data = Raster.raster;
 
@@ -442,7 +444,7 @@ public class Widget {
 
         System.arraycopy(data, 0, pixels, 0, data.length);
 
-        return Optional.of(bimage);
+        return bimage;
     }
 
     public String[] actions;
@@ -521,6 +523,11 @@ public class Widget {
             return 0;
         }
         return widgets.length;
+    }
+
+    @Override
+    public String toString() {
+        return Integer.toString(id);
     }
 
 }
