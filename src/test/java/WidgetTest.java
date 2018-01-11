@@ -43,12 +43,19 @@ public class WidgetTest {
     }
 
     private void exportWidget(int id) throws IOException {
-        Optional<Widget> result = Widget.lookup(id);
+        Widget widget = Widget.lookup(id);
 
-        if (result.isPresent()) {
-            BufferedImage bimage = result.get().toBufferedImage();
-            ImageIO.write(bimage, "png", new File(id + ".png"));
+        if (widget == null) {
+            return;
         }
+
+        BufferedImage bimage = widget.toBufferedImage();
+
+        if (bimage == null) {
+            return;
+        }
+
+        ImageIO.write(bimage, "png", new File(id + ".png"));
     }
 
 

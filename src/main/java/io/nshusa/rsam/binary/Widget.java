@@ -412,12 +412,12 @@ public class Widget {
         return sprite;
     }
 
-    public static Optional<Widget> lookup(int id) {
+    public static Widget lookup(int id) {
         if (widgets == null) {
-            return Optional.empty();
+            return null;
         }
 
-        return Optional.ofNullable(widgets[id]);
+        return widgets[id];
     }
 
     public BufferedImage toBufferedImage() {
