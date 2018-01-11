@@ -311,7 +311,12 @@ public class Widget {
         for (int childIndex = 0; childIndex < children; childIndex++) {
             int currentX = widget.childX[childIndex] + x;
             int currentY = widget.childY[childIndex] + y - scroll;
+
             Widget child = Widget.widgets[widget.children[childIndex]];
+
+            if (child == null) {
+                continue;
+            }
 
             currentX += child.horizontalDrawOffset;
             currentY += child.verticalDrawOffset;
