@@ -4,6 +4,7 @@ import io.nshusa.rsam.binary.sprite.Sprite;
 import io.nshusa.rsam.graphics.render.Raster;
 import io.nshusa.rsam.util.ByteBufferUtils;
 import io.nshusa.rsam.util.HashUtils;
+import io.nshusa.rsam.util.RenderUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -295,128 +296,6 @@ public class Widget {
         }
     }
 
-    public static void draw(Widget widget, int x, int y, int scroll) {
-        if (widget.group != 0 || widget.children == null) {
-            return;
-        }
-
-        int clipLeft = Raster.getClipLeft();
-        int clipBottom = Raster.getClipBottom();
-        int clipRight = Raster.getClipRight();
-        int clipTop = Raster.getClipTop();
-
-        Raster.setBounds(y + widget.height, x, x + widget.width, y);
-        int children = widget.children.length;
-
-        for (int childIndex = 0; childIndex < children; childIndex++) {
-            int currentX = widget.childX[childIndex] + x;
-            int currentY = widget.childY[childIndex] + y - scroll;
-
-            Widget child = Widget.widgets[widget.children[childIndex]];
-
-            if (child == null) {
-                continue;
-            }
-
-            currentX += child.horizontalDrawOffset;
-            currentY += child.verticalDrawOffset;
-
-            if (child.contentType > 0) {
-                //method75(child);
-            }
-
-            if (child.group == Widget.TYPE_CONTAINER) {
-                if (child.scrollPosition > child.scrollLimit - child.height) {
-                    child.scrollPosition = child.scrollLimit - child.height;
-                }
-                if (child.scrollPosition < 0) {
-                    child.scrollPosition = 0;
-                }
-
-                draw(child, currentX, currentY, child.scrollPosition);
-                if (child.scrollLimit > child.height) {
-//                    drawScrollbar(child.height, child.scrollPosition, currentY,
-//                            currentX + child.width, child.scrollLimit);
-                }
-            } else if (child.group != Widget.TYPE_MODEL_LIST) {
-                if (child.group == Widget.TYPE_INVENTORY) {
-
-                } else if (child.group == Widget.TYPE_RECTANGLE) {
-                    int colour = child.defaultColour;
-
-                    if (child.alpha == 0) {
-                        if (child.filled) {
-                            Raster.fillRectangle(currentX, currentY, child.width,
-                                    child.height, colour);
-                        } else {
-                            Raster.drawRectangle(currentX, currentY, child.width,
-                                    child.height, colour);
-                        }
-                    } else if (child.filled) {
-                        Raster.fillRectangle(currentX, currentY, child.width, child.height,
-                                colour, 256 - (child.alpha & 0xff));
-                    } else {
-                        Raster.drawRectangle(currentX, currentY, child.width, child.height,
-                                colour, 256 - (child.alpha & 0xff));
-                    }
-                } else if (child.group == Widget.TYPE_TEXT) {
-                    Font font = child.font;
-                    String text = child.defaultText;
-
-                    int colour;
-
-                    colour = child.defaultColour;
-
-                    if (child.optionType == Widget.OPTION_CONTINUE) {
-                        text = "Please wait...";
-                        colour = child.defaultColour;
-                    }
-
-                    if (Raster.width == 479) {
-                        if (colour == 0xffff00) {
-                            colour = 255;
-                        } else if (colour == 49152) {
-                            colour = 0xffffff;
-                        }
-                    }
-
-                    for (int drawY = currentY + font.getVerticalSpace(); text
-                            .length() > 0; drawY += font.getVerticalSpace()) {
-
-                        int line = text.indexOf("\\n");
-                        String drawn;
-                        if (line != -1) {
-                            drawn = text.substring(0, line);
-                            text = text.substring(line + 2);
-                        } else {
-                            drawn = text;
-                            text = "";
-                        }
-
-                        if (child.centeredText) {
-                            font.shadowCentre(currentX + child.width / 2, drawY, drawn,
-                                    child.shadowedText, colour);
-                        } else {
-                            font.shadow(currentX, drawY, drawn, child.shadowedText, colour);
-                        }
-                    }
-                } else if (child.group == Widget.TYPE_SPRITE) {
-                    Sprite sprite = child.defaultSprite;
-
-                    if (sprite != null) {
-                        sprite.drawSprite(currentX, currentY);
-                    }
-                } else if (child.group == Widget.TYPE_MODEL) {
-
-                } else if (child.group == Widget.TYPE_ITEM_LIST) {
-
-                }
-            }
-        }
-
-        Raster.setBounds(clipTop, clipLeft, clipRight, clipBottom);
-    }
-
     private static Sprite getSprite(Archive archive, String name, int id) {
         long key = (HashUtils.hashSpriteName(name) << 8) | id;
         Sprite sprite = spriteCache.get(key);
@@ -443,19 +322,21 @@ public class Widget {
     }
 
     public BufferedImage toBufferedImage() {
+        if (this.width <= 0 || this.height <= 0) {
+            return null;
+        }
+
         Raster.init(this.height, this.width, new int[this.width * this.height]);
         Raster.reset();
 
         if (group == TYPE_CONTAINER) {
-            Widget.draw(this, 0, 0, 0);
+            RenderUtils.renderWidget(this, 0, 0, 0);
         } else if (group == TYPE_SPRITE) {
             if (defaultSprite != null) {
                 defaultSprite.drawSprite(0, 0);
             }
         } else if (group == TYPE_TEXT) {
-            if (font != null) {
-                font.render(defaultText, 0, 0, this.defaultColour);
-            }
+            RenderUtils.renderText(this, 0, 0);
         }
 
         final int[] data = Raster.raster;

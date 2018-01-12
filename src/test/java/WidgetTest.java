@@ -31,7 +31,7 @@ public class WidgetTest {
             Font[] fonts = {smallFont, frameFont, boldFont, font2};
             Widget.decode(widgetArchive, graphicArchive, fonts);
 
-            exportWidget(1554);
+            exportWidget(8260);
 
             System.out.println(String.format("There are %s widgets.", Widget.count()));
         } catch (IOException e) {
@@ -51,6 +51,8 @@ public class WidgetTest {
         if (bimage == null) {
             return;
         }
+
+        System.out.println(widget.defaultText);
 
         ImageIO.write(bimage, "png", new File(id + ".png"));
     }
