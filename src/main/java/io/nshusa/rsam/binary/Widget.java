@@ -337,6 +337,8 @@ public class Widget {
             }
         } else if (group == TYPE_TEXT) {
             RenderUtils.renderText(this, 0, 0);
+        } else if (group == TYPE_RECTANGLE) {
+            RenderUtils.renderText(this, 0, 0);
         }
 
         final int[] data = Raster.raster;

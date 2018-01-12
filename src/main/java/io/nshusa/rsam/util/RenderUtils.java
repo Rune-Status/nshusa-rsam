@@ -133,6 +133,28 @@ public class RenderUtils {
         Raster.setBounds(clipTop, clipLeft, clipRight, clipBottom);
     }
 
+    public static void renderRectangle(Widget child, int currentX, int currentY) {
+        if (child.group == Widget.TYPE_RECTANGLE) {
+            int colour = child.defaultColour;
+
+            if (child.alpha == 0) {
+                if (child.filled) {
+                    Raster.fillRectangle(currentX, currentY, child.width,
+                            child.height, colour);
+                } else {
+                    Raster.drawRectangle(currentX, currentY, child.width,
+                            child.height, colour);
+                }
+            } else if (child.filled) {
+                Raster.fillRectangle(currentX, currentY, child.width, child.height,
+                        colour, 256 - (child.alpha & 0xff));
+            } else {
+                Raster.drawRectangle(currentX, currentY, child.width, child.height,
+                        colour, 256 - (child.alpha & 0xff));
+            }
+        }
+    }
+
     public static void renderText(Widget child, int x, int y) {
         if (child.group == Widget.TYPE_TEXT) {
 

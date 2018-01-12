@@ -31,7 +31,7 @@ public class WidgetTest {
             Font[] fonts = {smallFont, frameFont, boldFont, font2};
             Widget.decode(widgetArchive, graphicArchive, fonts);
 
-            exportWidget(8260);
+            exportRectangle();
 
             System.out.println(String.format("There are %s widgets.", Widget.count()));
         } catch (IOException e) {
@@ -55,6 +55,35 @@ public class WidgetTest {
         System.out.println(widget.defaultText);
 
         ImageIO.write(bimage, "png", new File(id + ".png"));
+    }
+
+    private static void exportRectangle() {
+        try {
+            for (int i = 0; i < Widget.count(); i++) {
+                Widget widget = Widget.lookup(i);
+
+                if (widget == null) {
+                    return;
+                }
+
+                if (widget.group == Widget.TYPE_RECTANGLE) {
+                    BufferedImage bimage = widget.toBufferedImage();
+
+                    if (bimage == null) {
+                        return;
+                    }
+
+                    System.out.println(widget.defaultText);
+
+                    ImageIO.write(bimage, "png", new File(widget.id + ".png"));
+                    break;
+                }
+
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
     }
 
 
