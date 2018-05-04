@@ -1,7 +1,7 @@
 package io.nshusa.rsam.binary;
 
 import io.nshusa.rsam.binary.sprite.Sprite;
-import io.nshusa.rsam.graphics.render.Raster;
+import io.nshusa.rsam.graphics.render.RSRaster;
 import io.nshusa.rsam.util.ByteBufferUtils;
 import io.nshusa.rsam.util.HashUtils;
 import io.nshusa.rsam.util.RenderUtils;
@@ -323,8 +323,8 @@ public class RSWidget {
             return null;
         }
 
-        Raster.init(this.height, this.width, new int[this.width * this.height]);
-        Raster.reset();
+        RSRaster.init(this.height, this.width, new int[this.width * this.height]);
+        RSRaster.reset();
 
         if (group == TYPE_CONTAINER) {
             RenderUtils.renderWidget(this, 0, 0, 0);
@@ -338,9 +338,9 @@ public class RSWidget {
             RenderUtils.renderText(this, 0, 0);
         }
 
-        final int[] data = Raster.raster;
+        final int[] data = RSRaster.raster;
 
-        BufferedImage bimage = new BufferedImage(Raster.width, Raster.height, BufferedImage.TYPE_INT_RGB);
+        BufferedImage bimage = new BufferedImage(RSRaster.width, RSRaster.height, BufferedImage.TYPE_INT_RGB);
 
         final int[] pixels = ((DataBufferInt) bimage.getRaster().getDataBuffer()).getData();
 

@@ -1,7 +1,7 @@
 package io.nshusa.rsam.binary.sprite;
 
 import io.nshusa.rsam.binary.RSArchive;
-import io.nshusa.rsam.graphics.render.Raster;
+import io.nshusa.rsam.graphics.render.RSRaster;
 import io.nshusa.rsam.util.ByteBufferUtils;
 import io.nshusa.rsam.util.HashUtils;
 
@@ -126,44 +126,44 @@ public final class Sprite {
     public void drawSprite(int x, int y) {
         x += offsetX;
         y += offsetY;
-        int rasterClip = x + y * Raster.width;
+        int rasterClip = x + y * RSRaster.width;
         int imageClip = 0;
         int height = this.height;
         int width = this.width;
-        int rasterOffset = Raster.width - width;
+        int rasterOffset = RSRaster.width - width;
         int imageOffset = 0;
 
-        if (y < Raster.getClipBottom()) {
-            int dy = Raster.getClipBottom() - y;
+        if (y < RSRaster.getClipBottom()) {
+            int dy = RSRaster.getClipBottom() - y;
             height -= dy;
-            y = Raster.getClipBottom();
+            y = RSRaster.getClipBottom();
             imageClip += dy * width;
-            rasterClip += dy * Raster.width;
+            rasterClip += dy * RSRaster.width;
         }
 
-        if (y + height > Raster.getClipTop()) {
-            height -= y + height - Raster.getClipTop();
+        if (y + height > RSRaster.getClipTop()) {
+            height -= y + height - RSRaster.getClipTop();
         }
 
-        if (x < Raster.getClipLeft()) {
-            int dx = Raster.getClipLeft() - x;
+        if (x < RSRaster.getClipLeft()) {
+            int dx = RSRaster.getClipLeft() - x;
             width -= dx;
-            x = Raster.getClipLeft();
+            x = RSRaster.getClipLeft();
             imageClip += dx;
             rasterClip += dx;
             imageOffset += dx;
             rasterOffset += dx;
         }
 
-        if (x + width > Raster.getClipRight()) {
-            int dx = x + width - Raster.getClipRight();
+        if (x + width > RSRaster.getClipRight()) {
+            int dx = x + width - RSRaster.getClipRight();
             width -= dx;
             imageOffset += dx;
             rasterOffset += dx;
         }
 
         if (width > 0 && height > 0) {
-            draw(Raster.raster, pixels, 0, imageClip, rasterClip, width, height, rasterOffset, imageOffset);
+            draw(RSRaster.raster, pixels, 0, imageClip, rasterClip, width, height, rasterOffset, imageOffset);
         }
     }
 

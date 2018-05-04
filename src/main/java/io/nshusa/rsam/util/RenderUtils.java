@@ -3,7 +3,7 @@ package io.nshusa.rsam.util;
 import io.nshusa.rsam.binary.RSFont;
 import io.nshusa.rsam.binary.RSWidget;
 import io.nshusa.rsam.binary.sprite.Sprite;
-import io.nshusa.rsam.graphics.render.Raster;
+import io.nshusa.rsam.graphics.render.RSRaster;
 
 public class RenderUtils {
 
@@ -16,12 +16,12 @@ public class RenderUtils {
             return;
         }
 
-        int clipLeft = Raster.getClipLeft();
-        int clipBottom = Raster.getClipBottom();
-        int clipRight = Raster.getClipRight();
-        int clipTop = Raster.getClipTop();
+        int clipLeft = RSRaster.getClipLeft();
+        int clipBottom = RSRaster.getClipBottom();
+        int clipRight = RSRaster.getClipRight();
+        int clipTop = RSRaster.getClipTop();
 
-        Raster.setBounds(y + widget.height, x, x + widget.width, y);
+        RSRaster.setBounds(y + widget.height, x, x + widget.width, y);
         int children = widget.children.length;
 
         for (int childIndex = 0; childIndex < children; childIndex++) {
@@ -62,17 +62,17 @@ public class RenderUtils {
 
                     if (child.alpha == 0) {
                         if (child.filled) {
-                            Raster.fillRectangle(currentX, currentY, child.width,
+                            RSRaster.fillRectangle(currentX, currentY, child.width,
                                     child.height, colour);
                         } else {
-                            Raster.drawRectangle(currentX, currentY, child.width,
+                            RSRaster.drawRectangle(currentX, currentY, child.width,
                                     child.height, colour);
                         }
                     } else if (child.filled) {
-                        Raster.fillRectangle(currentX, currentY, child.width, child.height,
+                        RSRaster.fillRectangle(currentX, currentY, child.width, child.height,
                                 colour, 256 - (child.alpha & 0xff));
                     } else {
-                        Raster.drawRectangle(currentX, currentY, child.width, child.height,
+                        RSRaster.drawRectangle(currentX, currentY, child.width, child.height,
                                 colour, 256 - (child.alpha & 0xff));
                     }
                 } else if (child.group == RSWidget.TYPE_TEXT) {
@@ -88,7 +88,7 @@ public class RenderUtils {
                         colour = child.defaultColour;
                     }
 
-                    if (Raster.width == 479) {
+                    if (RSRaster.width == 479) {
                         if (colour == 0xffff00) {
                             colour = 255;
                         } else if (colour == 49152) {
@@ -130,7 +130,7 @@ public class RenderUtils {
             }
         }
 
-        Raster.setBounds(clipTop, clipLeft, clipRight, clipBottom);
+        RSRaster.setBounds(clipTop, clipLeft, clipRight, clipBottom);
     }
 
     public static void renderRectangle(RSWidget child, int currentX, int currentY) {
@@ -139,17 +139,17 @@ public class RenderUtils {
 
             if (child.alpha == 0) {
                 if (child.filled) {
-                    Raster.fillRectangle(currentX, currentY, child.width,
+                    RSRaster.fillRectangle(currentX, currentY, child.width,
                             child.height, colour);
                 } else {
-                    Raster.drawRectangle(currentX, currentY, child.width,
+                    RSRaster.drawRectangle(currentX, currentY, child.width,
                             child.height, colour);
                 }
             } else if (child.filled) {
-                Raster.fillRectangle(currentX, currentY, child.width, child.height,
+                RSRaster.fillRectangle(currentX, currentY, child.width, child.height,
                         colour, 256 - (child.alpha & 0xff));
             } else {
-                Raster.drawRectangle(currentX, currentY, child.width, child.height,
+                RSRaster.drawRectangle(currentX, currentY, child.width, child.height,
                         colour, 256 - (child.alpha & 0xff));
             }
         }
@@ -170,7 +170,7 @@ public class RenderUtils {
                 colour = child.defaultColour;
             }
 
-            if (Raster.width == 479) {
+            if (RSRaster.width == 479) {
                 if (colour == 0xffff00) {
                     colour = 255;
                 } else if (colour == 49152) {
