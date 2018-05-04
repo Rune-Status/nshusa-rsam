@@ -32,10 +32,10 @@ public class RSWidget {
     public static final int TYPE_TEXT = 4;
 
     private static RSWidget[] widgets;
-    private static Map<Integer, Model> models = new HashMap<>();
+    private static Map<Integer, RSModel> models = new HashMap<>();
     private static Map<Long, Sprite> spriteCache = new HashMap<>();
 
-    private static void clearModels(int id, int type, Model model) {
+    private static void clearModels(int id, int type, RSModel model) {
         models.clear();
 
         if (model != null && type != 4) {

@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
 /**
  * @author Tom, modified by Freyr
  */
-public final class Model {
+public final class RSModel {
 
     public short[] facesX;
     public short[] facesY;
@@ -48,7 +48,7 @@ public final class Model {
     public int[] primaryTextureColor;
     public int[] secondaryTextureColor;
 
-    public Model(byte[] data) {
+    public RSModel(byte[] data) {
         decode(data);
         upscale();
     }
