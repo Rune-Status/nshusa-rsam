@@ -2,7 +2,7 @@ package io.nshusa.rsam.util;
 
 import io.nshusa.rsam.binary.RSFont;
 import io.nshusa.rsam.binary.RSWidget;
-import io.nshusa.rsam.binary.sprite.Sprite;
+import io.nshusa.rsam.binary.sprite.RSSprite;
 import io.nshusa.rsam.graphics.render.RSRaster;
 
 public class RenderUtils {
@@ -117,7 +117,7 @@ public class RenderUtils {
                         }
                     }
                 } else if (child.group == RSWidget.TYPE_SPRITE) {
-                    Sprite sprite = child.defaultSprite;
+                    RSSprite sprite = child.defaultSprite;
 
                     if (sprite != null) {
                         sprite.drawSprite(currentX, currentY);

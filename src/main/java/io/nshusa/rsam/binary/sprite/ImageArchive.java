@@ -10,7 +10,7 @@ import java.util.List;
 public final class ImageArchive {
 
     private int hash;
-    private final List<Sprite> sprites = new ArrayList<>();
+    private final List<RSSprite> sprites = new ArrayList<>();
 
     public ImageArchive(int hash) {
         this.hash = hash;
@@ -21,7 +21,7 @@ public final class ImageArchive {
 
         for (int i = 0; ; i++) {
             try {
-                Sprite decoded = Sprite.decode(archive, hash, i);
+                RSSprite decoded = RSSprite.decode(archive, hash, i);
 
                 imageArchive.sprites.add(decoded);
             } catch (IOException e) {
@@ -48,7 +48,7 @@ public final class ImageArchive {
         this.hash = HashUtils.nameToHash(name);
     }
 
-    public List<Sprite> getSprites() {
+    public List<RSSprite> getSprites() {
         return sprites;
     }
 

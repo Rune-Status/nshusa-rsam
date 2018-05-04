@@ -10,7 +10,7 @@ import java.awt.image.DataBufferInt;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public final class Sprite {
+public final class RSSprite {
 
     private int width;
     private int height;
@@ -21,18 +21,18 @@ public final class Sprite {
     private int[] pixels;
     private int format;
 
-    public Sprite() {
+    public RSSprite() {
 
     }
 
-    public Sprite(int width, int height) {
+    public RSSprite(int width, int height) {
         this.pixels = new int[width * height];
         this.width = this.resizeWidth = width;
         this.height = this.resizeHeight = height;
     }
 
-    public Sprite(int resizeWidth, int resizeHeight, int horizontalOffset, int verticalOffset, int width, int height, int format,
-                  int[] pixels) {
+    public RSSprite(int resizeWidth, int resizeHeight, int horizontalOffset, int verticalOffset, int width, int height, int format,
+                    int[] pixels) {
         this.resizeWidth = resizeWidth;
         this.resizeHeight = resizeHeight;
         this.offsetX = horizontalOffset;
@@ -43,11 +43,11 @@ public final class Sprite {
         this.pixels = pixels;
     }
 
-    public static Sprite decode(RSArchive archive, int hash, int id) throws IOException {
+    public static RSSprite decode(RSArchive archive, int hash, int id) throws IOException {
         ByteBuffer dataBuf = archive.readFile(hash);
         ByteBuffer metaBuf = archive.readFile("index.dat");
 
-        Sprite sprite = new Sprite();
+        RSSprite sprite = new RSSprite();
 
         // position of the current image archive within the archive
         metaBuf.position(dataBuf.getShort() & 0xFFFF);
@@ -119,7 +119,7 @@ public final class Sprite {
         return sprite;
     }
 
-    public static Sprite decode(RSArchive archive, String name, int id) throws IOException {
+    public static RSSprite decode(RSArchive archive, String name, int id) throws IOException {
         return decode(archive, HashUtils.nameToHash(name.contains(".dat") ? name : name + ".dat"), id);
     }
 

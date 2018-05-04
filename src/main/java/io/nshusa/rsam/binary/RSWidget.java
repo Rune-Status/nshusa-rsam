@@ -1,6 +1,6 @@
 package io.nshusa.rsam.binary;
 
-import io.nshusa.rsam.binary.sprite.Sprite;
+import io.nshusa.rsam.binary.sprite.RSSprite;
 import io.nshusa.rsam.graphics.render.RSRaster;
 import io.nshusa.rsam.util.ByteBufferUtils;
 import io.nshusa.rsam.util.HashUtils;
@@ -33,7 +33,7 @@ public class RSWidget {
 
     private static RSWidget[] widgets;
     private static Map<Integer, RSModel> models = new HashMap<>();
-    private static Map<Long, Sprite> spriteCache = new HashMap<>();
+    private static Map<Long, RSSprite> spriteCache = new HashMap<>();
 
     private static void clearModels(int id, int type, RSModel model) {
         models.clear();
@@ -146,7 +146,7 @@ public class RSWidget {
 
                 widget.spriteX = new int[20];
                 widget.spriteY = new int[20];
-                widget.sprites = new Sprite[20];
+                widget.sprites = new RSSprite[20];
 
                 for (int index = 0; index < 20; index++) {
                     int exists = buffer.get() & 0xFF;
@@ -293,15 +293,15 @@ public class RSWidget {
         }
     }
 
-    private static Sprite getSprite(RSArchive archive, String name, int id) {
+    private static RSSprite getSprite(RSArchive archive, String name, int id) {
         long key = (HashUtils.hashSpriteName(name) << 8) | id;
-        Sprite sprite = spriteCache.get(key);
+        RSSprite sprite = spriteCache.get(key);
         if (sprite != null) {
             return sprite;
         }
 
         try {
-            sprite = Sprite.decode(archive, name, id);
+            sprite = RSSprite.decode(archive, name, id);
             spriteCache.put(key, sprite);
         } catch (Exception ex) {
             return null;
@@ -362,7 +362,7 @@ public class RSWidget {
     public int defaultHoverColour;
     public int defaultMedia;
     public int defaultMediaType;
-    public Sprite defaultSprite;
+    public RSSprite defaultSprite;
     public String defaultText;
 
     public boolean filled;
@@ -394,14 +394,14 @@ public class RSWidget {
     public int secondaryHoverColour;
     public int secondaryMedia;
     public int secondaryMediaType;
-    public Sprite secondarySprite;
+    public RSSprite secondarySprite;
     public String secondaryText;
     public boolean shadowedText;
     public int spritePaddingX;
     public int spritePaddingY;
     public int spritePitch;
     public int spriteRoll;
-    public Sprite[] sprites;
+    public RSSprite[] sprites;
     public int spriteScale;
     public int[] spriteX;
     public int[] spriteY;
