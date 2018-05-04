@@ -13,7 +13,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Widget {
+public class RSWidget {
 
     public static final int OPTION_CLOSE = 3;
     public static final int OPTION_CONTINUE = 6;
@@ -31,7 +31,7 @@ public class Widget {
     public static final int TYPE_SPRITE = 5;
     public static final int TYPE_TEXT = 4;
 
-    private static Widget[] widgets;
+    private static RSWidget[] widgets;
     private static Map<Integer, Model> models = new HashMap<>();
     private static Map<Long, Sprite> spriteCache = new HashMap<>();
 
@@ -43,11 +43,11 @@ public class Widget {
         }
     }
 
-    public Widget() {
+    public RSWidget() {
         this.id = -1;
     }
 
-    public Widget(int id) {
+    public RSWidget(int id) {
         this.id = id;
 
         if (id < 0 || id >= widgets.length) {
@@ -61,9 +61,9 @@ public class Widget {
         widgets[id] = this;
     }
 
-    public static void decode(Archive interfaces, Archive graphics, RSFont[] fonts) throws IOException {
+    public static void decode(RSArchive interfaces, RSArchive graphics, RSFont[] fonts) throws IOException {
         ByteBuffer buffer = interfaces.readFile("data");
-        widgets = new Widget[buffer.getShort() & 0xFFFF];
+        widgets = new RSWidget[buffer.getShort() & 0xFFFF];
 
         int parent = -1;
 
@@ -74,7 +74,7 @@ public class Widget {
                 id = buffer.getShort() & 0xFFFF;
             }
 
-            Widget widget = new Widget(id);
+            RSWidget widget = new RSWidget(id);
             widget.parent = parent;
             widget.group = buffer.get() & 0xFF;
             widget.optionType = buffer.get() & 0xFF;
@@ -293,7 +293,7 @@ public class Widget {
         }
     }
 
-    private static Sprite getSprite(Archive archive, String name, int id) {
+    private static Sprite getSprite(RSArchive archive, String name, int id) {
         long key = (HashUtils.hashSpriteName(name) << 8) | id;
         Sprite sprite = spriteCache.get(key);
         if (sprite != null) {
@@ -310,7 +310,7 @@ public class Widget {
         return sprite;
     }
 
-    public static Widget lookup(int id) {
+    public static RSWidget lookup(int id) {
         if (widgets == null) {
             return null;
         }

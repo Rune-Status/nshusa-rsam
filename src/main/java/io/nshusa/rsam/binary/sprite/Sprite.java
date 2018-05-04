@@ -1,6 +1,6 @@
 package io.nshusa.rsam.binary.sprite;
 
-import io.nshusa.rsam.binary.Archive;
+import io.nshusa.rsam.binary.RSArchive;
 import io.nshusa.rsam.graphics.render.Raster;
 import io.nshusa.rsam.util.ByteBufferUtils;
 import io.nshusa.rsam.util.HashUtils;
@@ -43,7 +43,7 @@ public final class Sprite {
         this.pixels = pixels;
     }
 
-    public static Sprite decode(Archive archive, int hash, int id) throws IOException {
+    public static Sprite decode(RSArchive archive, int hash, int id) throws IOException {
         ByteBuffer dataBuf = archive.readFile(hash);
         ByteBuffer metaBuf = archive.readFile("index.dat");
 
@@ -119,7 +119,7 @@ public final class Sprite {
         return sprite;
     }
 
-    public static Sprite decode(Archive archive, String name, int id) throws IOException {
+    public static Sprite decode(RSArchive archive, String name, int id) throws IOException {
         return decode(archive, HashUtils.nameToHash(name.contains(".dat") ? name : name + ".dat"), id);
     }
 

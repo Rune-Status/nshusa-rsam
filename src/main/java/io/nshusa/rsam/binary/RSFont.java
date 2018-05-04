@@ -24,7 +24,7 @@ public final class RSFont extends Raster {
 
     }
 
-    public static RSFont decode(Archive archive, String name, boolean wideSpace) throws IOException {
+    public static RSFont decode(RSArchive archive, String name, boolean wideSpace) throws IOException {
         RSFont font = new RSFont();
         ByteBuffer data = archive.readFile(name + ".dat");
         ByteBuffer meta = archive.readFile("index.dat");

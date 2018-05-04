@@ -1,6 +1,6 @@
 package io.nshusa.rsam.binary.sprite;
 
-import io.nshusa.rsam.binary.Archive;
+import io.nshusa.rsam.binary.RSArchive;
 import io.nshusa.rsam.util.ByteBufferUtils;
 
 import java.io.IOException;
@@ -23,7 +23,7 @@ public final class IndexedImage {
         this.palette = palette;
     }
 
-    public static IndexedImage decode(Archive archive, String s, int i) throws IOException {
+    public static IndexedImage decode(RSArchive archive, String s, int i) throws IOException {
         ByteBuffer dataBuffer = archive.readFile(s + ".dat");
         ByteBuffer metaBuffer = archive.readFile("index.dat");
 

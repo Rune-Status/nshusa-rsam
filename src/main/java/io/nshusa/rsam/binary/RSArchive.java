@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
-public final class Archive {
+public final class RSArchive {
 
     public static final int TITLE_ARCHIVE = 1;
     public static final int CONFIG_ARCHIVE = 2;
@@ -60,11 +60,11 @@ public final class Archive {
 
     private final Map<Integer, ArchiveEntry> entries = new LinkedHashMap<>();
 
-    public Archive(ArchiveEntry[] entries) {
+    public RSArchive(ArchiveEntry[] entries) {
         Arrays.asList(entries).forEach(it -> this.entries.put(it.getHash(), it));
     }
 
-    public static Archive decode(ByteBuffer buffer) throws IOException {
+    public static RSArchive decode(ByteBuffer buffer) throws IOException {
         final int uncompressedLength = ByteBufferUtils.readU24Int(buffer);
         final int compressedLength = ByteBufferUtils.readU24Int(buffer);
 
@@ -102,7 +102,7 @@ public final class Archive {
             archiveEntries[i] = new ArchiveEntry(hashes[i], uncompressedSizes[i], compressedSizes[i], entryData);
         }
 
-        final Archive archive = new Archive(archiveEntries);
+        final RSArchive archive = new RSArchive(archiveEntries);
         archive.extracted = extracted;
 
         return archive;
@@ -156,7 +156,7 @@ public final class Archive {
 
     }
 
-    public static ByteBuffer encodeChecksum(Archive[] archives) throws IOException {
+    public static ByteBuffer encodeChecksum(RSArchive[] archives) throws IOException {
         // Integer.BYTES represents the crc stores as an integer which has 4 bytes, + Intger.BYTES because a pre calculated value is after the crcs which is in the form of a int as well
         ByteBuffer buffer = ByteBuffer.allocate((archives.length * Integer.BYTES) + Integer.BYTES);
 
@@ -165,7 +165,7 @@ public final class Archive {
         int[] crcs = new int[archives.length];
 
         for (int i = 1; i < crcs.length; i++) {
-            Archive archive = archives[i];
+            RSArchive archive = archives[i];
 
             checksum.reset();
 
@@ -227,9 +227,9 @@ public final class Archive {
         ArchiveEntry entry;
         if (!extracted) {
             byte[] compressed = CompressionUtils.bzip2(data);
-            entry = new Archive.ArchiveEntry(newHash, data.length, compressed.length, compressed);
+            entry = new RSArchive.ArchiveEntry(newHash, data.length, compressed.length, compressed);
         } else {
-            entry = new Archive.ArchiveEntry(newHash, data.length, data.length, data);
+            entry = new RSArchive.ArchiveEntry(newHash, data.length, data.length, data);
         }
 
         entries.replace(oldHash, entry);
@@ -248,9 +248,9 @@ public final class Archive {
         ArchiveEntry entry;
         if (!extracted) {
             byte[] compressed = CompressionUtils.bzip2(data);
-            entry = new Archive.ArchiveEntry(hash, data.length, compressed.length, compressed);
+            entry = new RSArchive.ArchiveEntry(hash, data.length, compressed.length, compressed);
         } else {
-            entry = new Archive.ArchiveEntry(hash, data.length, data.length, data);
+            entry = new RSArchive.ArchiveEntry(hash, data.length, data.length, data);
         }
 
         entries.put(hash, entry);

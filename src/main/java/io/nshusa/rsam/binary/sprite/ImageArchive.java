@@ -1,6 +1,6 @@
 package io.nshusa.rsam.binary.sprite;
 
-import io.nshusa.rsam.binary.Archive;
+import io.nshusa.rsam.binary.RSArchive;
 import io.nshusa.rsam.util.HashUtils;
 
 import java.io.IOException;
@@ -16,7 +16,7 @@ public final class ImageArchive {
         this.hash = hash;
     }
 
-    public static ImageArchive decode(Archive archive, int hash) {
+    public static ImageArchive decode(RSArchive archive, int hash) {
         ImageArchive imageArchive = new ImageArchive(hash);
 
         for (int i = 0; ; i++) {
@@ -32,7 +32,7 @@ public final class ImageArchive {
         return imageArchive;
     }
 
-    public static ImageArchive decode(Archive archive, String name) {
+    public static ImageArchive decode(RSArchive archive, String name) {
         return decode(archive, HashUtils.nameToHash(name));
     }
 

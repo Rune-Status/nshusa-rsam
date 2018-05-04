@@ -1,18 +1,12 @@
 package io.nshusa.rsam.util;
 
-import io.nshusa.rsam.FileStore;
+import io.nshusa.rsam.RSFileStore;
 import io.nshusa.rsam.IndexedFileSystem;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.PosixFileAttributeView;
-import java.nio.file.attribute.PosixFileAttributes;
 
 public class RsamUtils {
 
@@ -53,8 +47,8 @@ public class RsamUtils {
 
             for (int storeCount = 0; storeCount < fs.getStoreCount(); storeCount++) {
 
-                FileStore fileStore = fs.getStore(storeCount);
-                FileStore fileStoreCopy = nFs.getStore(storeCount);
+                RSFileStore fileStore = fs.getStore(storeCount);
+                RSFileStore fileStoreCopy = nFs.getStore(storeCount);
 
                 System.out.println("defragmenting index: " + storeCount);
 

@@ -1,7 +1,7 @@
 package io.nshusa.rsam.util;
 
 import io.nshusa.rsam.binary.RSFont;
-import io.nshusa.rsam.binary.Widget;
+import io.nshusa.rsam.binary.RSWidget;
 import io.nshusa.rsam.binary.sprite.Sprite;
 import io.nshusa.rsam.graphics.render.Raster;
 
@@ -11,7 +11,7 @@ public class RenderUtils {
 
     }
 
-    public static void renderWidget(Widget widget, int x, int y, int scroll) {
+    public static void renderWidget(RSWidget widget, int x, int y, int scroll) {
         if (widget.group != 0 || widget.children == null) {
             return;
         }
@@ -28,7 +28,7 @@ public class RenderUtils {
             int currentX = widget.childX[childIndex] + x;
             int currentY = widget.childY[childIndex] + y - scroll;
 
-            Widget child = Widget.lookup(widget.children[childIndex]);
+            RSWidget child = RSWidget.lookup(widget.children[childIndex]);
 
             if (child == null) {
                 continue;
@@ -41,7 +41,7 @@ public class RenderUtils {
                 //method75(child);
             }
 
-            if (child.group == Widget.TYPE_CONTAINER) {
+            if (child.group == RSWidget.TYPE_CONTAINER) {
                 if (child.scrollPosition > child.scrollLimit - child.height) {
                     child.scrollPosition = child.scrollLimit - child.height;
                 }
@@ -54,10 +54,10 @@ public class RenderUtils {
 //                    drawScrollbar(child.height, child.scrollPosition, currentY,
 //                            currentX + child.width, child.scrollLimit);
                 }
-            } else if (child.group != Widget.TYPE_MODEL_LIST) {
-                if (child.group == Widget.TYPE_INVENTORY) {
+            } else if (child.group != RSWidget.TYPE_MODEL_LIST) {
+                if (child.group == RSWidget.TYPE_INVENTORY) {
 
-                } else if (child.group == Widget.TYPE_RECTANGLE) {
+                } else if (child.group == RSWidget.TYPE_RECTANGLE) {
                     int colour = child.defaultColour;
 
                     if (child.alpha == 0) {
@@ -75,7 +75,7 @@ public class RenderUtils {
                         Raster.drawRectangle(currentX, currentY, child.width, child.height,
                                 colour, 256 - (child.alpha & 0xff));
                     }
-                } else if (child.group == Widget.TYPE_TEXT) {
+                } else if (child.group == RSWidget.TYPE_TEXT) {
                     RSFont font = child.font;
                     String text = child.defaultText;
 
@@ -83,7 +83,7 @@ public class RenderUtils {
 
                     colour = child.defaultColour;
 
-                    if (child.optionType == Widget.OPTION_CONTINUE) {
+                    if (child.optionType == RSWidget.OPTION_CONTINUE) {
                         text = "Please wait...";
                         colour = child.defaultColour;
                     }
@@ -116,15 +116,15 @@ public class RenderUtils {
                             font.shadow(currentX, drawY, drawn, child.shadowedText, colour);
                         }
                     }
-                } else if (child.group == Widget.TYPE_SPRITE) {
+                } else if (child.group == RSWidget.TYPE_SPRITE) {
                     Sprite sprite = child.defaultSprite;
 
                     if (sprite != null) {
                         sprite.drawSprite(currentX, currentY);
                     }
-                } else if (child.group == Widget.TYPE_MODEL) {
+                } else if (child.group == RSWidget.TYPE_MODEL) {
 
-                } else if (child.group == Widget.TYPE_ITEM_LIST) {
+                } else if (child.group == RSWidget.TYPE_ITEM_LIST) {
 
                 }
             }
@@ -133,8 +133,8 @@ public class RenderUtils {
         Raster.setBounds(clipTop, clipLeft, clipRight, clipBottom);
     }
 
-    public static void renderRectangle(Widget child, int currentX, int currentY) {
-        if (child.group == Widget.TYPE_RECTANGLE) {
+    public static void renderRectangle(RSWidget child, int currentX, int currentY) {
+        if (child.group == RSWidget.TYPE_RECTANGLE) {
             int colour = child.defaultColour;
 
             if (child.alpha == 0) {
@@ -155,8 +155,8 @@ public class RenderUtils {
         }
     }
 
-    public static void renderText(Widget child, int x, int y) {
-        if (child.group == Widget.TYPE_TEXT) {
+    public static void renderText(RSWidget child, int x, int y) {
+        if (child.group == RSWidget.TYPE_TEXT) {
 
             RSFont font = child.font;
             String text = child.defaultText;
@@ -165,7 +165,7 @@ public class RenderUtils {
 
             colour = child.defaultColour;
 
-            if (child.optionType == Widget.OPTION_CONTINUE) {
+            if (child.optionType == RSWidget.OPTION_CONTINUE) {
                 text = "Please wait...";
                 colour = child.defaultColour;
             }

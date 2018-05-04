@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -14,7 +13,7 @@ public final class IndexedFileSystem implements Closeable {
 
     private Path root;
 
-    private final FileStore[] fileStores = new FileStore[255];
+    private final RSFileStore[] fileStores = new RSFileStore[255];
 
     private boolean loaded;
 
@@ -41,7 +40,7 @@ public final class IndexedFileSystem implements Closeable {
             for (int i = 0; i < 255; i++) {
                 Path indexPath = root.resolve("main_file_cache.idx" + i);
                 if (Files.exists(indexPath)) {
-                    fileStores[i] = new FileStore(i, new RandomAccessFile(dataPath.toFile(), "rw").getChannel(), new RandomAccessFile(indexPath.toFile(), "rw").getChannel());
+                    fileStores[i] = new RSFileStore(i, new RandomAccessFile(dataPath.toFile(), "rw").getChannel(), new RandomAccessFile(indexPath.toFile(), "rw").getChannel());
                 }
             }
             loaded = true;
@@ -72,7 +71,7 @@ public final class IndexedFileSystem implements Closeable {
         if (!Files.exists(path)) {
             Files.createFile(path);
         }
-        fileStores[storeId] = new FileStore(storeId + 1, new RandomAccessFile(dataPath.toFile(), "rw").getChannel(), new RandomAccessFile(path.toFile(), "rw").getChannel());
+        fileStores[storeId] = new RSFileStore(storeId + 1, new RandomAccessFile(dataPath.toFile(), "rw").getChannel(), new RandomAccessFile(path.toFile(), "rw").getChannel());
         return true;
     }
 
@@ -108,7 +107,7 @@ public final class IndexedFileSystem implements Closeable {
 
             for (int store = 0; store < 255; store++) {
 
-                FileStore fileStore = getStore(store);
+                RSFileStore fileStore = getStore(store);
                 if (fileStore == null) {
                     continue;
                 }
@@ -138,7 +137,7 @@ public final class IndexedFileSystem implements Closeable {
 
                 int fileStoreId = entry.getKey();
 
-                FileStore fileStore = getStore(fileStoreId);
+                RSFileStore fileStore = getStore(fileStoreId);
 
                 for (int file = 0; file < entry.getValue().size(); file++) {
                     ByteBuffer data = entry.getValue().get(file);
@@ -154,7 +153,7 @@ public final class IndexedFileSystem implements Closeable {
         return true;
     }
 
-    public FileStore getStore(int storeId) {
+    public RSFileStore getStore(int storeId) {
         if (storeId < 0 || storeId >= fileStores.length) {
             throw new IllegalArgumentException(String.format("storeId=%d out of range=[0, 254]", storeId));
         }
@@ -163,7 +162,7 @@ public final class IndexedFileSystem implements Closeable {
     }
 
     public ByteBuffer readFile(int storeId, int fileId) {
-        FileStore store = getStore(storeId);
+        RSFileStore store = getStore(storeId);
         return store.readFile(fileId);
     }
 
@@ -204,7 +203,7 @@ public final class IndexedFileSystem implements Closeable {
 
     @Override
     public void close() throws IOException {
-        for (final FileStore fileStore : fileStores) {
+        for (final RSFileStore fileStore : fileStores) {
             if (fileStore == null) {
                 continue;
             }

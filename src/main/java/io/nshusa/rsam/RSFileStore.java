@@ -1,6 +1,6 @@
 package io.nshusa.rsam;
 
-import io.nshusa.rsam.binary.Archive;
+import io.nshusa.rsam.binary.RSArchive;
 import io.nshusa.rsam.util.ByteBufferUtils;
 
 import java.io.IOException;
@@ -9,7 +9,7 @@ import java.nio.channels.FileChannel;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
-public final class FileStore {
+public final class RSFileStore {
 
     private static final String[] crcFileNames = {"model_crc", "anim_crc", "midi_crc", "map_crc"};
     private static final String[] versionFileNames = {"model_version", "anim_version", "midi_version", "map_version"};
@@ -39,13 +39,13 @@ public final class FileStore {
 
     private final FileChannel metaChannel;
 
-    public FileStore(int storeId, FileChannel dataChannel, FileChannel metaChannel) {
+    public RSFileStore(int storeId, FileChannel dataChannel, FileChannel metaChannel) {
         this.storeId = storeId;
         this.dataChannel = dataChannel;
         this.metaChannel = metaChannel;
     }
 
-    public int calculateChecksum(Archive updateArchive, int fileId) throws IOException {
+    public int calculateChecksum(RSArchive updateArchive, int fileId) throws IOException {
         // you can't calculate the checksum for archives like this they don't have an associated version and crc file in the version list archive
         if (storeId == 0) {
             return 0;
