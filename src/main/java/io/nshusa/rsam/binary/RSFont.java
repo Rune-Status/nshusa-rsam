@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Random;
 
-public final class Font extends Raster {
+public final class RSFont extends Raster {
 
     private int[] glyphHeights = new int[256];
     private byte[][] glyphs = new byte[256][];
@@ -20,12 +20,12 @@ public final class Font extends Raster {
 
     private int verticalSpace;
 
-    private Font() {
+    private RSFont() {
 
     }
 
-    public static Font decode(Archive archive, String name, boolean wideSpace) throws IOException {
-        Font font = new Font();
+    public static RSFont decode(Archive archive, String name, boolean wideSpace) throws IOException {
+        RSFont font = new RSFont();
         ByteBuffer data = archive.readFile(name + ".dat");
         ByteBuffer meta = archive.readFile("index.dat");
         meta.position((data.getShort() & 0xFFFF) + 4);

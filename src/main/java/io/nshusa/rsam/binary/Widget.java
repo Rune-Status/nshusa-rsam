@@ -6,15 +6,12 @@ import io.nshusa.rsam.util.ByteBufferUtils;
 import io.nshusa.rsam.util.HashUtils;
 import io.nshusa.rsam.util.RenderUtils;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
-import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 public class Widget {
 
@@ -64,7 +61,7 @@ public class Widget {
         widgets[id] = this;
     }
 
-    public static void decode(Archive interfaces, Archive graphics, Font[] fonts) throws IOException {
+    public static void decode(Archive interfaces, Archive graphics, RSFont[] fonts) throws IOException {
         ByteBuffer buffer = interfaces.readFile("data");
         widgets = new Widget[buffer.getShort() & 0xFFFF];
 
@@ -369,7 +366,7 @@ public class Widget {
     public String defaultText;
 
     public boolean filled;
-    public Font font;
+    public RSFont font;
     public int group;
     public boolean hasActions;
     public int height;

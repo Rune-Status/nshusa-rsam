@@ -1,6 +1,6 @@
 package io.nshusa.rsam.util;
 
-import io.nshusa.rsam.binary.Font;
+import io.nshusa.rsam.binary.RSFont;
 import io.nshusa.rsam.binary.Widget;
 import io.nshusa.rsam.binary.sprite.Sprite;
 import io.nshusa.rsam.graphics.render.Raster;
@@ -76,7 +76,7 @@ public class RenderUtils {
                                 colour, 256 - (child.alpha & 0xff));
                     }
                 } else if (child.group == Widget.TYPE_TEXT) {
-                    Font font = child.font;
+                    RSFont font = child.font;
                     String text = child.defaultText;
 
                     int colour;
@@ -158,7 +158,7 @@ public class RenderUtils {
     public static void renderText(Widget child, int x, int y) {
         if (child.group == Widget.TYPE_TEXT) {
 
-            Font font = child.font;
+            RSFont font = child.font;
             String text = child.defaultText;
 
             int colour;
