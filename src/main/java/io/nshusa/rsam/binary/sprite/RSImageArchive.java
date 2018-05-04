@@ -7,17 +7,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class ImageArchive {
+public final class RSImageArchive {
 
     private int hash;
     private final List<RSSprite> sprites = new ArrayList<>();
 
-    public ImageArchive(int hash) {
+    public RSImageArchive(int hash) {
         this.hash = hash;
     }
 
-    public static ImageArchive decode(RSArchive archive, int hash) {
-        ImageArchive imageArchive = new ImageArchive(hash);
+    public static RSImageArchive decode(RSArchive archive, int hash) {
+        RSImageArchive imageArchive = new RSImageArchive(hash);
 
         for (int i = 0; ; i++) {
             try {
@@ -32,7 +32,7 @@ public final class ImageArchive {
         return imageArchive;
     }
 
-    public static ImageArchive decode(RSArchive archive, String name) {
+    public static RSImageArchive decode(RSArchive archive, String name) {
         return decode(archive, HashUtils.nameToHash(name));
     }
 
