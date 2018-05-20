@@ -103,7 +103,7 @@ public final class IndexedFileSystem implements Closeable {
                 return false;
             }
 
-            Map<Integer, List<ByteBuffer>> map = new LinkedHashMap<>();
+            Map<Integer, List<byte[]>> map = new LinkedHashMap<>();
 
             for (int store = 0; store < 255; store++) {
 
@@ -115,9 +115,9 @@ public final class IndexedFileSystem implements Closeable {
                 map.put(fileStore.getStoreId(), new ArrayList<>());
 
                 for (int file = 0; file < fileStore.getFileCount(); file++) {
-                    ByteBuffer buffer = fileStore.readFile(file);
+                    byte[] buffer = fileStore.readFile(file);
 
-                    List<ByteBuffer> data = map.get(store);
+                    List<byte[]> data = map.get(store);
                     data.add(buffer);
                 }
 
@@ -133,15 +133,15 @@ public final class IndexedFileSystem implements Closeable {
 
             load();
 
-            for (Map.Entry<Integer, List<ByteBuffer>> entry : map.entrySet()) {
+            for (Map.Entry<Integer, List<byte[]>> entry : map.entrySet()) {
 
                 int fileStoreId = entry.getKey();
 
                 RSFileStore fileStore = getStore(fileStoreId);
 
                 for (int file = 0; file < entry.getValue().size(); file++) {
-                    ByteBuffer data = entry.getValue().get(file);
-                    fileStore.writeFile(file, data == null ? new byte[0] : data.array());
+                    byte[] data = entry.getValue().get(file);
+                    fileStore.writeFile(file, data == null ? new byte[0] : data);
                 }
 
             }
@@ -161,8 +161,13 @@ public final class IndexedFileSystem implements Closeable {
         return fileStores[storeId];
     }
 
-    public ByteBuffer readFile(int storeId, int fileId) {
+    public byte[] readFile(int storeId, int fileId) {
         RSFileStore store = getStore(storeId);
+
+        if (store == null) {
+            return null;
+        }
+
         return store.readFile(fileId);
     }
 
