@@ -1,12 +1,12 @@
 package io.nshusa.rsam.binary.sprite;
 
-import io.nshusa.rsam.binary.Archive;
+import io.nshusa.rsam.binary.RSArchive;
 import io.nshusa.rsam.util.ByteBufferUtils;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public final class IndexedImage {
+public final class RSIndexedImage {
 
     public byte palettePixels[];
 
@@ -19,11 +19,11 @@ public final class IndexedImage {
     public int resizeWidth;
     private int resizeHeight;
 
-    private IndexedImage(int[] palette) {
+    private RSIndexedImage(int[] palette) {
         this.palette = palette;
     }
 
-    public static IndexedImage decode(Archive archive, String s, int i) throws IOException {
+    public static RSIndexedImage decode(RSArchive archive, String s, int i) throws IOException {
         ByteBuffer dataBuffer = archive.readFile(s + ".dat");
         ByteBuffer metaBuffer = archive.readFile("index.dat");
 
@@ -35,7 +35,7 @@ public final class IndexedImage {
 
         final int[] palette = new int[colorLength];
 
-        final IndexedImage indexedImage = new IndexedImage(palette);
+        final RSIndexedImage indexedImage = new RSIndexedImage(palette);
 
         indexedImage.resizeWidth = resizeWidth;
         indexedImage.resizeHeight = resizeHeight;

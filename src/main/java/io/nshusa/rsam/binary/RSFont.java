@@ -1,24 +1,31 @@
 package io.nshusa.rsam.binary;
 
-import io.nshusa.rsam.graphics.render.Raster;
+import io.nshusa.rsam.graphics.render.RSRaster;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Random;
 
-public final class Font extends Raster {
+public final class RSFont extends RSRaster {
 
     private int[] glyphHeights = new int[256];
     private byte[][] glyphs = new byte[256][];
     private int[] glyphSpacings = new int[256];
     private int[] glyphWidths = new int[256];
     private int[] horizontalOffsets = new int[256];
+    private int[] verticalOffsets = new int[256];
+
     private Random random = new Random();
     private boolean strikethrough;
-    private int[] verticalOffsets = new int[256];
+
     private int verticalSpace;
 
-    public Font(Archive archive, String name, boolean wideSpace) throws IOException {
+    private RSFont() {
+
+    }
+
+    public static RSFont decode(RSArchive archive, String name, boolean wideSpace) throws IOException {
+        RSFont font = new RSFont();
         ByteBuffer data = archive.readFile(name + ".dat");
         ByteBuffer meta = archive.readFile("index.dat");
         meta.position((data.getShort() & 0xFFFF) + 4);
@@ -30,54 +37,55 @@ public final class Font extends Raster {
         }
 
         for (int character = 0; character < 256; character++) {
-            horizontalOffsets[character] = meta.get() & 0xFF;
-            verticalOffsets[character] = meta.get() & 0xFF;
-            int width = glyphWidths[character] = meta.getShort() & 0xFFFF;
-            int height = glyphHeights[character] = meta.getShort() & 0xFFFF;
+            font.horizontalOffsets[character] = meta.get() & 0xFF;
+            font.verticalOffsets[character] = meta.get() & 0xFF;
+            int width = font.glyphWidths[character] = meta.getShort() & 0xFFFF;
+            int height = font.glyphHeights[character] = meta.getShort() & 0xFFFF;
             int format = meta.get() & 0xFF;
             int pixels = width * height;
-            glyphs[character] = new byte[pixels];
+            font.glyphs[character] = new byte[pixels];
 
             if (format == 0) {
                 for (int pixel = 0; pixel < pixels; pixel++) {
-                    glyphs[character][pixel] = data.get();
+                    font.glyphs[character][pixel] = data.get();
                 }
             } else if (format == 1) {
                 for (int x = 0; x < width; x++) {
                     for (int y = 0; y < height; y++) {
-                        glyphs[character][x + y * width] = data.get();
+                        font.glyphs[character][x + y * width] = data.get();
                     }
                 }
             }
 
-            if (height > verticalSpace && character < 128) {
-                verticalSpace = height;
+            if (height > font.verticalSpace && character < 128) {
+                font.verticalSpace = height;
             }
 
-            horizontalOffsets[character] = 1;
-            glyphSpacings[character] = width + 2;
+            font.horizontalOffsets[character] = 1;
+            font.glyphSpacings[character] = width + 2;
             int filledCount = 0;
 
             for (int y = height / 7; y < height; y++) {
-                filledCount += glyphs[character][y * width];
+                filledCount += font.glyphs[character][y * width];
             }
 
             if (filledCount <= height / 7) {
-                glyphSpacings[character]--;
-                horizontalOffsets[character] = 0;
+                font.glyphSpacings[character]--;
+                font.horizontalOffsets[character] = 0;
             }
             filledCount = 0;
 
             for (int y = height / 7; y < height; y++) {
-                filledCount += glyphs[character][width - 1 + y * width];
+                filledCount += font.glyphs[character][width - 1 + y * width];
             }
 
             if (filledCount <= height / 7) {
-                glyphSpacings[character]--;
+                font.glyphSpacings[character]--;
             }
         }
 
-        glyphSpacings[' '] = wideSpace ? glyphSpacings['I'] : glyphSpacings['i'];
+        font.glyphSpacings[' '] = wideSpace ? font.glyphSpacings['I'] : font.glyphSpacings['i'];
+        return font;
     }
 
     public int getColouredTextWidth(String text) {
@@ -146,7 +154,7 @@ public final class Font extends Raster {
         return strikethrough;
     }
 
-    public void render(int x, int y, String text, int colour) {
+    public void render(String text, int x, int y, int colour) {
         if (text == null) {
             return;
         }
@@ -167,11 +175,11 @@ public final class Font extends Raster {
     }
 
     public void renderCentre(int x, int y, String text, int colour) {
-        render(x - getTextWidth(text) / 2, y, text, colour);
+        render(text, x - getTextWidth(text) / 2, y, colour);
     }
 
     public void renderLeft(int x, int y, String text, int colour) {
-        render(x - getTextWidth(text), y, text, colour);
+        render(text, x - getTextWidth(text), y, colour);
     }
 
     public void renderRandom(String text, int x, int y, int colour, boolean shadow, int seed) {
@@ -324,7 +332,7 @@ public final class Font extends Raster {
         }
 
         if (strikethrough) {
-            Raster.drawHorizontal(width, y + (int) (verticalSpace * 0.7D), x - width, 0x800000);
+            RSRaster.drawHorizontal(width, y + (int) (verticalSpace * 0.7D), x - width, 0x800000);
         }
     }
 
@@ -393,42 +401,42 @@ public final class Font extends Raster {
     }
 
     private void render(byte[] glyph, int x, int y, int width, int height, int colour) {
-        int rasterIndex = x + y * Raster.width;
-        int rasterClip = Raster.width - width;
+        int rasterIndex = x + y * RSRaster.width;
+        int rasterClip = RSRaster.width - width;
         int glyphClip = 0;
         int glyphIndex = 0;
 
-        if (y < Raster.getClipBottom()) {
-            int dy = Raster.getClipBottom() - y;
+        if (y < RSRaster.getClipBottom()) {
+            int dy = RSRaster.getClipBottom() - y;
             height -= dy;
-            y = Raster.getClipBottom();
+            y = RSRaster.getClipBottom();
             glyphIndex += dy * width;
-            rasterIndex += dy * Raster.width;
+            rasterIndex += dy * RSRaster.width;
         }
 
-        if (y + height >= Raster.getClipTop()) {
-            height -= y + height - Raster.getClipTop() + 1;
+        if (y + height >= RSRaster.getClipTop()) {
+            height -= y + height - RSRaster.getClipTop() + 1;
         }
 
-        if (x < Raster.getClipLeft()) {
-            int dx = Raster.getClipLeft() - x;
+        if (x < RSRaster.getClipLeft()) {
+            int dx = RSRaster.getClipLeft() - x;
             width -= dx;
-            x = Raster.getClipLeft();
+            x = RSRaster.getClipLeft();
             glyphIndex += dx;
             rasterIndex += dx;
             glyphClip += dx;
             rasterClip += dx;
         }
 
-        if (x + width >= Raster.getClipRight()) {
-            int dx = x + width - Raster.getClipRight() + 1;
+        if (x + width >= RSRaster.getClipRight()) {
+            int dx = x + width - RSRaster.getClipRight() + 1;
             width -= dx;
             glyphClip += dx;
             rasterClip += dx;
         }
 
         if (width > 0 && height > 0) {
-            render(Raster.raster, glyph, colour, glyphIndex, rasterIndex, width, height, rasterClip, glyphClip);
+            render(RSRaster.raster, glyph, colour, glyphIndex, rasterIndex, width, height, rasterClip, glyphClip);
         }
     }
 
@@ -475,42 +483,42 @@ public final class Font extends Raster {
     }
 
     private void renderRgba(byte[] glyph, int x, int y, int height, int width, int alpha, int colour) {
-        int rasterIndex = x + y * Raster.width;
-        int rasterClip = Raster.width - width;
+        int rasterIndex = x + y * RSRaster.width;
+        int rasterClip = RSRaster.width - width;
         int glyphClip = 0;
         int glyphIndex = 0;
 
-        if (y < Raster.getClipBottom()) {
-            int dy = Raster.getClipBottom() - y;
+        if (y < RSRaster.getClipBottom()) {
+            int dy = RSRaster.getClipBottom() - y;
             height -= dy;
-            y = Raster.getClipBottom();
+            y = RSRaster.getClipBottom();
             glyphIndex += dy * width;
-            rasterIndex += dy * Raster.width;
+            rasterIndex += dy * RSRaster.width;
         }
 
-        if (y + height >= Raster.getClipTop()) {
-            height -= y + height - Raster.getClipTop() + 1;
+        if (y + height >= RSRaster.getClipTop()) {
+            height -= y + height - RSRaster.getClipTop() + 1;
         }
 
-        if (x < Raster.getClipLeft()) {
-            int dx = Raster.getClipLeft() - x;
+        if (x < RSRaster.getClipLeft()) {
+            int dx = RSRaster.getClipLeft() - x;
             width -= dx;
-            x = Raster.getClipLeft();
+            x = RSRaster.getClipLeft();
             glyphIndex += dx;
             rasterIndex += dx;
             glyphClip += dx;
             rasterClip += dx;
         }
 
-        if (x + width >= Raster.getClipRight()) {
-            int dx = x + width - Raster.getClipRight() + 1;
+        if (x + width >= RSRaster.getClipRight()) {
+            int dx = x + width - RSRaster.getClipRight() + 1;
             width -= dx;
             glyphClip += dx;
             rasterClip += dx;
         }
 
         if (width > 0 && height > 0) {
-            renderRgba(glyph, height, rasterIndex, Raster.raster, glyphIndex, width, glyphClip, rasterClip, colour, alpha);
+            renderRgba(glyph, height, rasterIndex, RSRaster.raster, glyphIndex, width, glyphClip, rasterClip, colour, alpha);
         }
     }
 

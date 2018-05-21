@@ -1,15 +1,19 @@
 package io.nshusa.rsam.binary;
 
-import io.nshusa.rsam.binary.sprite.Sprite;
+import io.nshusa.rsam.binary.sprite.RSSprite;
+import io.nshusa.rsam.graphics.render.RSRaster;
 import io.nshusa.rsam.util.ByteBufferUtils;
 import io.nshusa.rsam.util.HashUtils;
+import io.nshusa.rsam.util.RenderUtils;
 
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Widget {
+public class RSWidget {
 
     public static final int OPTION_CLOSE = 3;
     public static final int OPTION_CONTINUE = 6;
@@ -27,11 +31,11 @@ public class Widget {
     public static final int TYPE_SPRITE = 5;
     public static final int TYPE_TEXT = 4;
 
-    public static Widget[] widgets;
-    private static Map<Integer, Model> models = new HashMap<>();
-    private static Map<Long, Sprite> spriteCache = new HashMap<>();
+    private static RSWidget[] widgets;
+    private static Map<Integer, RSModel> models = new HashMap<>();
+    private static Map<Long, RSSprite> spriteCache = new HashMap<>();
 
-    public static void clearModels(int id, int type, Model model) {
+    private static void clearModels(int id, int type, RSModel model) {
         models.clear();
 
         if (model != null && type != 4) {
@@ -39,9 +43,27 @@ public class Widget {
         }
     }
 
-    public static void load(Archive interfaces, Archive graphics, Font[] fonts) throws IOException {
+    public RSWidget() {
+        this.id = -1;
+    }
+
+    public RSWidget(int id) {
+        this.id = id;
+
+        if (id < 0 || id >= widgets.length) {
+            throw new IllegalArgumentException(String.format("widget=%d must be between 0 and %d", id, widgets.length));
+        }
+
+        if (widgets[id] != null) {
+            System.out.println(String.format("overriding widget: %d", id));
+        }
+
+        widgets[id] = this;
+    }
+
+    public static void decode(RSArchive interfaces, RSArchive graphics, RSFont[] fonts) throws IOException {
         ByteBuffer buffer = interfaces.readFile("data");
-        widgets = new Widget[buffer.getShort() & 0xFFFF];
+        widgets = new RSWidget[buffer.getShort() & 0xFFFF];
 
         int parent = -1;
 
@@ -52,8 +74,7 @@ public class Widget {
                 id = buffer.getShort() & 0xFFFF;
             }
 
-            Widget widget = widgets[id] = new Widget();
-            widget.id = id;
+            RSWidget widget = new RSWidget(id);
             widget.parent = parent;
             widget.group = buffer.get() & 0xFF;
             widget.optionType = buffer.get() & 0xFF;
@@ -125,7 +146,7 @@ public class Widget {
 
                 widget.spriteX = new int[20];
                 widget.spriteY = new int[20];
-                widget.sprites = new Sprite[20];
+                widget.sprites = new RSSprite[20];
 
                 for (int index = 0; index < 20; index++) {
                     int exists = buffer.get() & 0xFF;
@@ -272,21 +293,60 @@ public class Widget {
         }
     }
 
-    private static Sprite getSprite(Archive archive, String name, int id) {
+    private static RSSprite getSprite(RSArchive archive, String name, int id) {
         long key = (HashUtils.hashSpriteName(name) << 8) | id;
-        Sprite sprite = spriteCache.get(key);
+        RSSprite sprite = spriteCache.get(key);
         if (sprite != null) {
             return sprite;
         }
 
         try {
-            sprite = Sprite.decode(archive, name, id);
+            sprite = RSSprite.decode(archive, name, id);
             spriteCache.put(key, sprite);
         } catch (Exception ex) {
             return null;
         }
 
         return sprite;
+    }
+
+    public static RSWidget lookup(int id) {
+        if (widgets == null) {
+            return null;
+        }
+
+        return widgets[id];
+    }
+
+    public BufferedImage toBufferedImage() {
+        if (this.width <= 0 || this.height <= 0) {
+            return null;
+        }
+
+        RSRaster.init(this.height, this.width, new int[this.width * this.height]);
+        RSRaster.reset();
+
+        if (group == TYPE_CONTAINER) {
+            RenderUtils.renderWidget(this, 0, 0, 0);
+        } else if (group == TYPE_SPRITE) {
+            if (defaultSprite != null) {
+                defaultSprite.drawSprite(0, 0);
+            }
+        } else if (group == TYPE_TEXT) {
+            RenderUtils.renderText(this, 0, 0);
+        } else if (group == TYPE_RECTANGLE) {
+            RenderUtils.renderText(this, 0, 0);
+        }
+
+        final int[] data = RSRaster.raster;
+
+        BufferedImage bimage = new BufferedImage(RSRaster.width, RSRaster.height, BufferedImage.TYPE_INT_RGB);
+
+        final int[] pixels = ((DataBufferInt) bimage.getRaster().getDataBuffer()).getData();
+
+        System.arraycopy(data, 0, pixels, 0, data.length);
+
+        return bimage;
     }
 
     public String[] actions;
@@ -302,11 +362,11 @@ public class Widget {
     public int defaultHoverColour;
     public int defaultMedia;
     public int defaultMediaType;
-    public Sprite defaultSprite;
+    public RSSprite defaultSprite;
     public String defaultText;
 
     public boolean filled;
-    public Font font;
+    public RSFont font;
     public int group;
     public boolean hasActions;
     public int height;
@@ -334,14 +394,14 @@ public class Widget {
     public int secondaryHoverColour;
     public int secondaryMedia;
     public int secondaryMediaType;
-    public Sprite secondarySprite;
+    public RSSprite secondarySprite;
     public String secondaryText;
     public boolean shadowedText;
     public int spritePaddingX;
     public int spritePaddingY;
     public int spritePitch;
     public int spriteRoll;
-    public Sprite[] sprites;
+    public RSSprite[] sprites;
     public int spriteScale;
     public int[] spriteX;
     public int[] spriteY;
@@ -358,6 +418,18 @@ public class Widget {
         tmp = inventoryAmounts[first];
         inventoryAmounts[first] = inventoryAmounts[second];
         inventoryAmounts[second] = tmp;
+    }
+
+    public static int count() {
+        if (widgets == null) {
+            return 0;
+        }
+        return widgets.length;
+    }
+
+    @Override
+    public String toString() {
+        return Integer.toString(id);
     }
 
 }

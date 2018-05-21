@@ -1,6 +1,7 @@
 package io.nshusa.rsam.binary.sprite;
 
-import io.nshusa.rsam.binary.Archive;
+import io.nshusa.rsam.binary.RSArchive;
+import io.nshusa.rsam.graphics.render.RSRaster;
 import io.nshusa.rsam.util.ByteBufferUtils;
 import io.nshusa.rsam.util.HashUtils;
 
@@ -9,7 +10,7 @@ import java.awt.image.DataBufferInt;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public final class Sprite {
+public final class RSSprite {
 
     private int width;
     private int height;
@@ -20,18 +21,18 @@ public final class Sprite {
     private int[] pixels;
     private int format;
 
-    public Sprite() {
+    public RSSprite() {
 
     }
 
-    public Sprite(int width, int height) {
+    public RSSprite(int width, int height) {
         this.pixels = new int[width * height];
         this.width = this.resizeWidth = width;
         this.height = this.resizeHeight = height;
     }
 
-    public Sprite(int resizeWidth, int resizeHeight, int horizontalOffset, int verticalOffset, int width, int height, int format,
-                  int[] pixels) {
+    public RSSprite(int resizeWidth, int resizeHeight, int horizontalOffset, int verticalOffset, int width, int height, int format,
+                    int[] pixels) {
         this.resizeWidth = resizeWidth;
         this.resizeHeight = resizeHeight;
         this.offsetX = horizontalOffset;
@@ -42,11 +43,11 @@ public final class Sprite {
         this.pixels = pixels;
     }
 
-    public static Sprite decode(Archive archive, int hash, int id) throws IOException {
+    public static RSSprite decode(RSArchive archive, int hash, int id) throws IOException {
         ByteBuffer dataBuf = archive.readFile(hash);
         ByteBuffer metaBuf = archive.readFile("index.dat");
 
-        Sprite sprite = new Sprite();
+        RSSprite sprite = new RSSprite();
 
         // position of the current image archive within the archive
         metaBuf.position(dataBuf.getShort() & 0xFFFF);
@@ -118,8 +119,102 @@ public final class Sprite {
         return sprite;
     }
 
-    public static Sprite decode(Archive archive, String name, int id) throws IOException {
-        return decode(archive, HashUtils.nameToHash(name), id);
+    public static RSSprite decode(RSArchive archive, String name, int id) throws IOException {
+        return decode(archive, HashUtils.nameToHash(name.contains(".dat") ? name : name + ".dat"), id);
+    }
+
+    public void drawSprite(int x, int y) {
+        x += offsetX;
+        y += offsetY;
+        int rasterClip = x + y * RSRaster.width;
+        int imageClip = 0;
+        int height = this.height;
+        int width = this.width;
+        int rasterOffset = RSRaster.width - width;
+        int imageOffset = 0;
+
+        if (y < RSRaster.getClipBottom()) {
+            int dy = RSRaster.getClipBottom() - y;
+            height -= dy;
+            y = RSRaster.getClipBottom();
+            imageClip += dy * width;
+            rasterClip += dy * RSRaster.width;
+        }
+
+        if (y + height > RSRaster.getClipTop()) {
+            height -= y + height - RSRaster.getClipTop();
+        }
+
+        if (x < RSRaster.getClipLeft()) {
+            int dx = RSRaster.getClipLeft() - x;
+            width -= dx;
+            x = RSRaster.getClipLeft();
+            imageClip += dx;
+            rasterClip += dx;
+            imageOffset += dx;
+            rasterOffset += dx;
+        }
+
+        if (x + width > RSRaster.getClipRight()) {
+            int dx = x + width - RSRaster.getClipRight();
+            width -= dx;
+            imageOffset += dx;
+            rasterOffset += dx;
+        }
+
+        if (width > 0 && height > 0) {
+            draw(RSRaster.raster, pixels, 0, imageClip, rasterClip, width, height, rasterOffset, imageOffset);
+        }
+    }
+
+    private void draw(int raster[], int[] image, int colour, int sourceIndex, int destIndex, int width, int height, int destStep,
+                      int sourceStep) {
+        int minX = -(width >> 2);
+        width = -(width & 3);
+
+        for (int y = -height; y < 0; y++) {
+            for (int x = minX; x < 0; x++) {
+                colour = image[sourceIndex++];
+                if (colour != 0) {
+                    raster[destIndex++] = colour;
+                } else {
+                    destIndex++;
+                }
+                colour = image[sourceIndex++];
+
+                if (colour != 0) {
+                    raster[destIndex++] = colour;
+                } else {
+                    destIndex++;
+                }
+                colour = image[sourceIndex++];
+
+                if (colour != 0) {
+                    raster[destIndex++] = colour;
+                } else {
+                    destIndex++;
+                }
+                colour = image[sourceIndex++];
+
+                if (colour != 0) {
+                    raster[destIndex++] = colour;
+                } else {
+                    destIndex++;
+                }
+            }
+
+            for (int k2 = width; k2 < 0; k2++) {
+                colour = image[sourceIndex++];
+                if (colour != 0) {
+                    raster[destIndex++] = colour;
+                } else {
+                    destIndex++;
+                }
+            }
+
+            destIndex += destStep;
+            sourceIndex += sourceStep;
+        }
     }
 
     public BufferedImage toBufferedImage() {

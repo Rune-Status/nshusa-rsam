@@ -1,27 +1,27 @@
 package io.nshusa.rsam.binary.sprite;
 
-import io.nshusa.rsam.binary.Archive;
+import io.nshusa.rsam.binary.RSArchive;
 import io.nshusa.rsam.util.HashUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class ImageArchive {
+public final class RSImageArchive {
 
     private int hash;
-    private final List<Sprite> sprites = new ArrayList<>();
+    private final List<RSSprite> sprites = new ArrayList<>();
 
-    public ImageArchive(int hash) {
+    public RSImageArchive(int hash) {
         this.hash = hash;
     }
 
-    public static ImageArchive decode(Archive archive, int hash) {
-        ImageArchive imageArchive = new ImageArchive(hash);
+    public static RSImageArchive decode(RSArchive archive, int hash) {
+        RSImageArchive imageArchive = new RSImageArchive(hash);
 
         for (int i = 0; ; i++) {
             try {
-                Sprite decoded = Sprite.decode(archive, hash, i);
+                RSSprite decoded = RSSprite.decode(archive, hash, i);
 
                 imageArchive.sprites.add(decoded);
             } catch (IOException e) {
@@ -32,7 +32,7 @@ public final class ImageArchive {
         return imageArchive;
     }
 
-    public static ImageArchive decode(Archive archive, String name) {
+    public static RSImageArchive decode(RSArchive archive, String name) {
         return decode(archive, HashUtils.nameToHash(name));
     }
 
@@ -48,7 +48,7 @@ public final class ImageArchive {
         this.hash = HashUtils.nameToHash(name);
     }
 
-    public List<Sprite> getSprites() {
+    public List<RSSprite> getSprites() {
         return sprites;
     }
 

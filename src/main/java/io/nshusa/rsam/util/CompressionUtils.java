@@ -14,7 +14,7 @@ import java.util.zip.GZIPOutputStream;
  *
  * @author Graham
  */
-public final class CompressionUtil {
+public final class CompressionUtils {
 
     /**
      * Bzip2s the specified array, removing the header.
@@ -115,7 +115,7 @@ public final class CompressionUtil {
     /**
      * Default private constructor to prevent instantiation.
      */
-    private CompressionUtil() {
+    private CompressionUtils() {
 
     }
 

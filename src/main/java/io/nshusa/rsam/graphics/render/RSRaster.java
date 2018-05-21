@@ -1,6 +1,6 @@
 package io.nshusa.rsam.graphics.render;
 
-public class Raster {
+public class RSRaster {
 
     public static int maxRight;
     public static int height;
@@ -145,8 +145,8 @@ public class Raster {
             height = clipTop - y;
         }
 
-        int dx = Raster.width - width;
-        int pixel = x + y * Raster.width;
+        int dx = RSRaster.width - width;
+        int pixel = x + y * RSRaster.width;
 
         for (int i2 = -height; i2 < 0; i2++) {
             for (int j2 = -width; j2 < 0; j2++) {
@@ -180,8 +180,8 @@ public class Raster {
         int r = (colour >> 16 & 0xff) * alpha;
         int g = (colour >> 8 & 0xff) * alpha;
         int b = (colour & 0xff) * alpha;
-        int dx = Raster.width - width;
-        int pixel = drawX + drawY * Raster.width;
+        int dx = RSRaster.width - width;
+        int pixel = drawX + drawY * RSRaster.width;
 
         for (int x = 0; x < height; x++) {
             for (int y = -width; y < 0; y++) {
@@ -220,9 +220,9 @@ public class Raster {
     }
 
     public static void init(int height, int width, int[] pixels) {
-        Raster.raster = pixels;
-        Raster.width = width;
-        Raster.height = height;
+        RSRaster.raster = pixels;
+        RSRaster.width = width;
+        RSRaster.height = height;
         setBounds(height, 0, width, 0);
     }
 
@@ -242,46 +242,46 @@ public class Raster {
             clipBottom = 0;
         }
 
-        if (clipRight > Raster.width) {
-            clipRight = Raster.width;
+        if (clipRight > RSRaster.width) {
+            clipRight = RSRaster.width;
         }
 
-        if (clipTop > Raster.height) {
-            clipTop = Raster.height;
+        if (clipTop > RSRaster.height) {
+            clipTop = RSRaster.height;
         }
 
-        Raster.clipLeft = clipLeft;
-        Raster.clipBottom = clipBottom;
-        Raster.clipRight = clipRight;
-        Raster.clipTop = clipTop;
+        RSRaster.clipLeft = clipLeft;
+        RSRaster.clipBottom = clipBottom;
+        RSRaster.clipRight = clipRight;
+        RSRaster.clipTop = clipTop;
 
-        maxRight = Raster.clipRight - 1;
-        centreX = Raster.clipRight / 2;
-        centreY = Raster.clipTop / 2;
+        maxRight = RSRaster.clipRight - 1;
+        centreX = RSRaster.clipRight / 2;
+        centreY = RSRaster.clipTop / 2;
     }
 
     public static void setCentreX(int centreX) {
-        Raster.centreX = centreX;
+        RSRaster.centreX = centreX;
     }
 
     public static void setCentreY(int centreY) {
-        Raster.centreY = centreY;
+        RSRaster.centreY = centreY;
     }
 
     public static void setClipBottom(int clipBottom) {
-        Raster.clipBottom = clipBottom;
+        RSRaster.clipBottom = clipBottom;
     }
 
     public static void setClipLeft(int clipLeft) {
-        Raster.clipLeft = clipLeft;
+        RSRaster.clipLeft = clipLeft;
     }
 
     public static void setClipRight(int clipRight) {
-        Raster.clipRight = clipRight;
+        RSRaster.clipRight = clipRight;
     }
 
     public static void setClipTop(int clipTop) {
-        Raster.clipTop = clipTop;
+        RSRaster.clipTop = clipTop;
     }
 
     public static void setDefaultBounds() {
