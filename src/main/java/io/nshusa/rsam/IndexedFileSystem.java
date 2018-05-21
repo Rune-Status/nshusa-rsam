@@ -155,14 +155,18 @@ public final class IndexedFileSystem implements Closeable {
 
     public RSFileStore getStore(int storeId) {
         if (storeId < 0 || storeId >= fileStores.length) {
-            throw new IllegalArgumentException(String.format("storeId=%d out of range=[0, 254]", storeId));
+            return null;
         }
-
         return fileStores[storeId];
     }
 
     public ByteBuffer readFile(int storeId, int fileId) {
         RSFileStore store = getStore(storeId);
+
+        if (store == null) {
+            return null;
+        }
+
         return store.readFile(fileId);
     }
 
