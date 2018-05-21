@@ -64,14 +64,14 @@ public final class RSFileStore {
         }
 
         // read the file
-        byte[] fileBuf = readFile(fileId);
+        ByteBuffer fileBuf = readFile(fileId);
 
         if (fileBuf == null) {
             return 0;
         }
 
         // file data first then version after
-        ByteBuffer buf = ByteBuffer.allocate(fileBuf.length + Short.BYTES);
+        ByteBuffer buf = ByteBuffer.allocate(fileBuf.capacity() + Short.BYTES);
         buf.put(fileBuf);
         buf.putShort((short) version);
 
@@ -81,7 +81,7 @@ public final class RSFileStore {
         return (int) checksum.getValue();
     }
 
-    public synchronized byte[] readFile(int fileId) {
+    public synchronized ByteBuffer readFile(int fileId) {
         try {
 
             if (fileId * META_BLOCK_LENGTH + META_BLOCK_LENGTH > metaChannel.size()) {
@@ -99,7 +99,7 @@ public final class RSFileStore {
                 return null;
             }
 
-            byte[] fileBuffer = new byte[size];
+            ByteBuffer fileBuffer = ByteBuffer.allocate(size);
 
             int remaining = size;
             int chunk = 0;
@@ -140,13 +140,14 @@ public final class RSFileStore {
                 int rem = buffer.remaining();
 
                 for (int i = 0; i < rem; i++) {
-                    fileBuffer[i] = buffer.get();
+                    fileBuffer.put(buffer.get());
                 }
 
                 remaining -= blockSize;
                 block = nextBlock;
                 chunk++;
             }
+            fileBuffer.position(0);
             return fileBuffer;
         } catch (IOException _ex) {
             _ex.printStackTrace();
